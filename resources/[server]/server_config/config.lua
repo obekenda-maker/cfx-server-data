@@ -38,7 +38,10 @@ ServerCfg.Colors = {
 ---------------------------------------------------------------------------
 ServerCfg.Hud = {
     enabled        = true,
-    position       = 'bottom-left',  -- 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right'
+    position       = 'bottom-right', -- statusbalken: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right'
+                                     -- (de GTA-minimap staat linksonder, vandaar standaard rechtsonder)
+    moneyPosition  = 'top-right',    -- geld/job-paneel: 'top-left' | 'top-right'
+    killfeedPosition = 'top-right',  -- killfeed (onder het geldpaneel): 'top-left' | 'top-right'
     scale          = 1.0,            -- 0.7 – 1.3
     speedUnit      = 'kmh',          -- 'kmh' | 'mph'
     hideGameHud    = true,           -- verberg standaard GTA-HUD-onderdelen (geld, gebiedsnaam, ...)

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Server HUD</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="root" class="hidden">
+
+  <!-- Geld & job -->
+  <section id="money" class="panel money pos-top-right">
+    <div class="row" id="row-cash"><span class="label" data-t="cash">Contant</span><span class="value" id="cash">€0</span></div>
+    <div class="row" id="row-bank"><span class="label" data-t="bank">Bank</span><span class="value" id="bank">€0</span></div>
+    <div class="row job" id="row-job"><span class="job-name" id="job">-</span><span class="grade" id="grade"></span></div>
+  </section>
+
+  <!-- Killfeed -->
+  <section id="killfeed" class="killfeed pos-top-right"></section>
+
+  <!-- Combat-paneel -->
+  <section id="combat" class="panel combat hidden">
+    <div class="combat-head">
+      <span class="badge" data-t="combat_zone">PvP</span>
+      <span class="zone-name" id="combat-zone">-</span>
+      <span class="team" id="combat-team"></span>
+    </div>
+    <div class="combat-stats">
+      <div><b id="c-kills">0</b><small data-t="kills">Kills</small></div>
+      <div><b id="c-deaths">0</b><small data-t="deaths">Deaths</small></div>
+      <div><b id="c-streak">0</b><small data-t="streak">Serie</small></div>
+      <div><b id="c-kd">0.00</b><small data-t="kd">K/D</small></div>
+    </div>
+    <div class="scores hidden" id="scores"></div>
+    <div class="protect hidden" id="protect"><span data-t="protected">Beschermd</span><i id="protect-bar"></i></div>
+  </section>
+
+  <!-- Statusbalken + voertuig -->
+  <section id="status" class="status pos-bottom-right">
+    <div class="vehicle hidden" id="vehicle">
+      <div class="speed"><b id="v-speed">0</b><small id="v-unit">km/u</small></div>
+      <div class="vmeta">
+        <span><small data-t="fuel">Brandstof</small><b id="v-fuel">0%</b></span>
+        <span><small data-t="gear">Versn.</small><b id="v-gear">N</b></span>
+        <span><small data-t="engine">Motor</small><b id="v-engine">0%</b></span>
+      </div>
+    </div>
+    <div class="ammo hidden" id="ammo"><b id="a-clip">0</b><span>/</span><em id="a-reserve">0</em></div>
+    <div class="bars">
+      <div class="bar" id="bar-health"><i></i><span data-t="health">Gezondheid</span><b>100</b></div>
+      <div class="bar" id="bar-armor"><i></i><span data-t="armor">Vest</span><b>0</b></div>
+      <div class="bar" id="bar-hunger"><i></i><span data-t="hunger">Honger</span><b>100</b></div>
+      <div class="bar" id="bar-thirst"><i></i><span data-t="thirst">Dorst</span><b>100</b></div>
+    </div>
+  </section>
+
+  <!-- Zone-banner -->
+  <section id="banner" class="banner hidden"><h1 id="banner-title"></h1><p id="banner-text"></p></section>
+
+  <!-- Dood -->
+  <div id="death" class="death hidden"><span data-t="dead">Uitgeschakeld</span></div>
+
+  <!-- Leaderboard -->
+  <section id="board" class="board hidden">
+    <header><h2 id="board-title">Leaderboard</h2><span id="board-sort"></span></header>
+    <table>
+      <thead><tr><th data-t="board_rank">#</th><th data-t="board_name">Speler</th><th data-t="kills">Kills</th><th data-t="deaths">Deaths</th><th data-t="kd">K/D</th><th data-t="board_level">Lvl</th></tr></thead>
+      <tbody id="board-rows"></tbody>
+    </table>
+    <div class="empty hidden" id="board-empty">Nog geen statistieken.</div>
+    <footer id="board-mine"></footer>
+  </section>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
