@@ -22,10 +22,13 @@ Gebouwd op [`cfx-server-data`](docs/CFX_SERVER_DATA_ORIGINAL.md) + ESX Legacy + 
 | `rp_interactions` | `[roleplay]` | `/me /do /id /geefgeld /geefitem`, handen omhoog |
 | `rp_gangs` | `[roleplay]` | Gangs, grades, kas, territoria, ganggevechten, zwarte markt, illegale activiteiten |
 | `server_hud` | `[ui]` | NUI-HUD: status, geld, job, voertuig, munitie, combat, killfeed, leaderboard |
+| `server_welcome` | `[server]` | Nederlandse loadscreen, regels met (server-afgedwongen) akkoord, onboarding, `/help` `/regels` `/welkom` |
 
 Externe afhankelijkheden (worden **niet** meegeleverd, `scripts/install-deps.sh` haalt ze op): `oxmysql`, `ox_lib`,
 `es_extended` + `esx_menu_*`, `esx_skin`, `skinchanger`, `esx_identity`, `esx_addonaccount`, `esx_addoninventory`,
 `esx_datastore`, `esx_society`, `esx_status`, `esx_basicneeds`, `esx_license`.
+
+**Releasegereedheid:** zie [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) (wat klaar/getest is en wat jij nog moet doen) en het multiplayer-testplan [`docs/MULTIPLAYER_CHECKLIST.md`](docs/MULTIPLAYER_CHECKLIST.md). **De server is pas vrijgegeven na die multiplayertests.**
 
 Het ontwerp staat in [`docs/BOUWPLAN.md`](docs/BOUWPLAN.md), dependencies/versies in [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md), resterende punten in [`docs/RESTERENDE_PUNTEN.md`](docs/RESTERENDE_PUNTEN.md).
 
@@ -62,7 +65,8 @@ Eerste admin maken: typ in de serverconsole `setgroup <speler-id> superadmin`.
 | Discord-webhooks, databasewachtwoord, licentie | `secrets.cfg` (convars via `set`) |
 | Combat: zones, coördinaten, straal, teams, loadouts, wapens, respawn, beschermtijd, beloningen, jobregels, PvP buiten zones | `resources/[combat]/combat_core/config.lua` |
 | XP/level-formule, leaderboard | `resources/[combat]/combat_stats/config.lua` |
-| Jobs & **salarissen** | `sql/02_jobs_items.sql` (ESX `job_grades`) |
+| Jobs, jobgrades & **salarissen** | `JobsCfg.Catalog` in `rp_jobs/config.lua` → `python3 scripts/gen_jobs_sql.py` of console-commando `jobsync` (zie [`docs/JOBS.md`](docs/JOBS.md)) |
+| Serverregels, akkoord, onboarding | `server_welcome/rules_nl.lua`, `config.lua`, teksten in `locale_nl.lua` |
 | Dienstpunten, politie-/ambulance-/taxi-/bezorgregels, routes, beloningen | `resources/[roleplay]/rp_jobs/config.lua` |
 | Garages, depot, voertuigcatalogus + prijzen | `resources/[roleplay]/rp_garages/config.lua` |
 | Winkels, prijzen, wapenlicentie, bruikbare items | `resources/[roleplay]/rp_shops/config.lua` |
@@ -76,7 +80,7 @@ Meer detail: [`docs/CONFIGURATIE.md`](docs/CONFIGURATIE.md).
 ```bash
 pip install lupa pymysql                 # Lua 5.4 in Python + MariaDB-client
 apt install lua-check mariadb-server     # luacheck + lokale database (socket /run/mysqld/mysqld.sock, user root)
-python3 tests/run_all.py                 # alle controles
+python3 tests/run_all.py                 # alle controles (kan ook zonder Chromium/shellcheck; die stappen worden dan overgeslagen)
 python3 tests/make_report.py             # idem, en schrijft docs/TESTRESULTATEN.md
 ```
 

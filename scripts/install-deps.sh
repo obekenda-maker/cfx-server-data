@@ -17,7 +17,7 @@ fetch_zip() { # naam url doelmap
   local name="$1" url="$2" dest="$3"
   echo ">> $name downloaden"
   curl -fsSL "$url" -o "$TMP/$name.zip"
-  rm -rf "$dest/$name"
+  rm -rf "${dest:?}/${name:?}"
   unzip -q "$TMP/$name.zip" -d "$TMP/$name-x"
   # releases bevatten meestal één map met de resourcenaam
   if [ -d "$TMP/$name-x/$name" ]; then mv "$TMP/$name-x/$name" "$dest/$name"; else mkdir -p "$dest/$name" && mv "$TMP/$name-x"/* "$dest/$name/"; fi

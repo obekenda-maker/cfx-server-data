@@ -48,7 +48,11 @@ Specifieke aandachtspunten:
   en pas `ServerCfg.Admin.groups` aan.
 * **`ALTER TABLE owned_vehicles … ADD COLUMN IF NOT EXISTS`** is MariaDB-syntaxis.
 
-## 3. In-game checklist (minimaal 2 spelers/clients)
+## 3. In-game checklist
+
+> Dit hoofdstuk is een korte versie. Het **volledige multiplayer-testplan** (rollen, test-ID's, verwachte uitkomsten, exploit-pogingen, GO/NO-GO) staat in [`MULTIPLAYER_CHECKLIST.md`](MULTIPLAYER_CHECKLIST.md).
+
+(minimaal 2 spelers/clients)
 
 Markeer elk punt; een mislukt punt = noteer de F8-console/serverconsole-fout.
 

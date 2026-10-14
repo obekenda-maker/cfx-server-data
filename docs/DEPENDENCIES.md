@@ -47,6 +47,7 @@ Niet gestart: `[gameplay]/[examples]`, `runcode` (dev-tool, remote code-uitvoeri
 | `rp_gangs` | oxmysql, ox_lib, es_extended, server_config, server_logs, combat_core, rp_jobs | – |
 | `admin_tools` | oxmysql, ox_lib, es_extended, server_config, server_logs | rp_gangs, combat_stats, combat_core |
 | `server_hud` | ox_lib, es_extended, server_config | esx_status (honger/dorst), combat_* (via events) |
+| `server_welcome` | oxmysql, ox_lib, es_extended, server_config, server_logs | – (loadscreen + NUI; `esx_identity`-scherm wordt afgewacht) |
 
 `python3 tests/check_manifests.py` controleert bestanden, `@resource/…`-verwijzingen, dependencies **en** dat elke dependency
 vóór zijn gebruiker in `server.cfg.example` staat.

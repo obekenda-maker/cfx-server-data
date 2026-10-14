@@ -277,6 +277,7 @@ lib.callback.register('rp_gangs:setGrade', function(source, identifier, grade)
 end)
 
 lib.callback.register('rp_gangs:leave', function(source)
+    if not Gang.throttle(source, 'leave', 1500) then return { ok = false, msg = 'gang.too_fast' } end
     local gang, me = Gang.of(source)
     if not gang then return { ok = false, msg = 'gang.not_in' } end
     if me.grade >= GangCfg.LeaderGrade and memberCount(gang.id) > 1 then
@@ -301,6 +302,7 @@ function Gang.disbandData(gangId)
 end
 
 lib.callback.register('rp_gangs:disband', function(source)
+    if not Gang.throttle(source, 'disband', 1500) then return { ok = false, msg = 'gang.too_fast' } end
     local gang = Gang.of(source)
     if not gang or not Gang.can(source, 'disband') then return { ok = false, msg = 'gang.no_permission' } end
     local xPlayer = ESX.GetPlayerFromId(source)

@@ -8,3 +8,9 @@ secrets.cfg
 /txData/
 *.log
 /tests/__pycache__/
+
+# Back-ups bevatten spelersgegevens
+/backups/
+*.sql.gz
+*.sql.gz.sha256
+*.tar.gz.gpg

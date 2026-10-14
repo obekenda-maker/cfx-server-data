@@ -11,6 +11,12 @@ Mock.load('rp_gangs', 'resources/[roleplay]/rp_gangs/config.lua')
 for _, f in ipairs({ 'main', 'territory', 'market' }) do Mock.load('rp_gangs', 'resources/[roleplay]/rp_gangs/server/' .. f .. '.lua') end
 Mock.stepThreads()
 
+--- Callback met een korte klokstap ervoor: de nieuwe spam-throttles (≤2 s) mogen de échte cooldowns niet maskeren
+local function slow(name, src, ...)
+    Mock.advance(2100)
+    return Mock.callback(name, src, ...)
+end
+
 local function at(x, y, z) return { x = x + 0.0, y = y + 0.0, z = (z or 30.0) + 0.0 } end
 local function c3(v) return at(v.x, v.y, v.z) end
 local GROVE = GangCfg.Territories[1]
@@ -290,33 +296,33 @@ Test.case('zwarte markt: alleen leden, gebied vereist, daglimiet, zwart geld', f
     xp.accounts.black_money = 50000
     local outsider = addP(2, { coords = c3(BM.coords) })
     outsider.accounts.black_money = 50000
-    Test.eq(Mock.callback('rp_gangs:market:buy', 2, 'item', 'lockpick', 1).msg, 'gang.market_members_only', 'niet-lid')
+    Test.eq(slow('rp_gangs:market:buy', 2, 'item', 'lockpick', 1).msg, 'gang.market_members_only', 'niet-lid')
     local g = makeGang('Markt', 1, {})
     bump()
-    local info = Mock.callback('rp_gangs:market:info', 1)
+    local info = slow('rp_gangs:market:info', 1)
     Test.ok(info.ok and #info.weapons == 2 and info.needTerritory, 'info')
-    Test.ok(Mock.callback('rp_gangs:market:buy', 1, 'item', 'lockpick', 2).ok, 'item gekocht')
+    Test.ok(slow('rp_gangs:market:buy', 1, 'item', 'lockpick', 2).ok, 'item gekocht')
     Test.eq(xp.accounts.black_money, 50000 - 2 * 450, 'betaald met zwart geld')
     Test.eq(xp.inventory.lockpick, 2, 'item ontvangen')
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).msg, 'gang.market_need_territory', 'wapens vereisen gebied')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).msg, 'gang.market_need_territory', 'wapens vereisen gebied')
     Gang.territories.grove.gang_id = g.id
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'item', 'lockpick', 20).msg, 'gang.market_daily', 'daglimiet items')
-    Test.ok(Mock.callback('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).ok, 'wapen gekocht')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'item', 'lockpick', 20).msg, 'gang.market_daily', 'daglimiet items')
+    Test.ok(slow('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).ok, 'wapen gekocht')
     Test.ok(xp.hasWeapon('WEAPON_PISTOL'), 'wapen in loadout')
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).msg, 'gang.market_daily', 'daglimiet wapens')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_PISTOL', 1).msg, 'gang.market_daily', 'daglimiet wapens')
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_RPG', 1).msg, 'gang.invalid', 'onbekend wapen')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'weapon', 'WEAPON_RPG', 1).msg, 'gang.invalid', 'onbekend wapen')
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
-    Test.ok(Mock.callback('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).ok, 'item gekocht')
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).msg, 'gang.market_cooldown', 'aankoopcooldown')
+    Test.ok(slow('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).ok, 'item gekocht')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).msg, 'gang.market_cooldown', 'aankoopcooldown')
     Test.eq(#Mock.logsOf('money') >= 1 and 1 or 0, 1, 'transacties gelogd')
     -- tijdens PvP
     Mock.advance(BM.purchaseCooldownSeconds * 1000 + 1)
     Mock.registry.combat_core.IsInCombat = function() return true end
-    Test.eq(Mock.callback('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).msg, 'gang.in_combat', 'niet tijdens PvP')
+    Test.eq(slow('rp_gangs:market:buy', 1, 'item', 'lockpick', 1).msg, 'gang.in_combat', 'niet tijdens PvP')
 end)
 
 Test.case('activiteit + hehler: te snel = verdacht, cooldown, daglimiet', function()
@@ -325,29 +331,29 @@ Test.case('activiteit + hehler: te snel = verdacht, cooldown, daglimiet', functi
     for _, f in ipairs({}) do end
     local act = GangCfg.Activities[1]
     local xp = addP(1, { coords = c3(act.coords) })
-    local r = Mock.callback('rp_gangs:activity:start', 1, 'scrap')
+    local r = slow('rp_gangs:activity:start', 1, 'scrap')
     Test.ok(r.ok and r.seconds == act.seconds, 'start')
     Mock.advance(2000)
-    Test.eq(Mock.callback('rp_gangs:activity:finish', 1, 'scrap').msg, 'gang.invalid', 'te snel klaar')
+    Test.eq(slow('rp_gangs:activity:finish', 1, 'scrap').msg, 'gang.invalid', 'te snel klaar')
     Test.ok(#Mock.logsOf('suspicious') >= 1, 'verdacht gelogd')
-    Test.eq(Mock.callback('rp_gangs:activity:finish', 1, 'scrap').msg, 'gang.invalid', 'niet zonder start')
+    Test.eq(slow('rp_gangs:activity:finish', 1, 'scrap').msg, 'gang.invalid', 'niet zonder start')
     Mock.advance(3000)
-    Mock.callback('rp_gangs:activity:start', 1, 'scrap')
+    slow('rp_gangs:activity:start', 1, 'scrap')
     Mock.advance(act.seconds * 1000)
-    local f = Mock.callback('rp_gangs:activity:finish', 1, 'scrap')
+    local f = slow('rp_gangs:activity:finish', 1, 'scrap')
     Test.ok(f.ok, 'afgerond')
     Test.eq(xp.inventory.schroot, act.count, 'items ontvangen')
-    Test.eq(Mock.callback('rp_gangs:activity:start', 1, 'scrap').msg, 'gang.activity_cooldown', 'cooldown')
+    Test.eq(slow('rp_gangs:activity:start', 1, 'scrap').msg, 'gang.activity_cooldown', 'cooldown')
 
     -- hehler
     Mock.players[1].coords = c3(GangCfg.Fence.coords)
     xp.inventory.schroot = 500
-    local s = Mock.callback('rp_gangs:fence:sell', 1, 'schroot', 100)
+    local s = slow('rp_gangs:fence:sell', 1, 'schroot', 100)
     Test.ok(s.ok, 'verkocht')
     local cap = GangCfg.Fence.dailyAmountCap
     Test.eq(xp.accounts.black_money, cap, 'beperkt tot daglimiet')
     Test.eq(xp.inventory.schroot, 500 - cap / GangCfg.Fence.prices.schroot, 'alleen verkochte items afgenomen')
-    Test.eq(Mock.callback('rp_gangs:fence:sell', 1, 'schroot', 5).msg, 'gang.fence_cap', 'dagcap bereikt')
-    Test.eq(Mock.callback('rp_gangs:fence:sell', 1, 'lockpick', 1).msg, 'gang.invalid', 'hehler koopt dit niet')
-    Test.eq(Mock.callback('rp_gangs:fence:sell', 1, 'schroot', -3).msg, 'gang.invalid', 'negatief aantal')
+    Test.eq(slow('rp_gangs:fence:sell', 1, 'schroot', 5).msg, 'gang.fence_cap', 'dagcap bereikt')
+    Test.eq(slow('rp_gangs:fence:sell', 1, 'lockpick', 1).msg, 'gang.invalid', 'hehler koopt dit niet')
+    Test.eq(slow('rp_gangs:fence:sell', 1, 'schroot', -3).msg, 'gang.invalid', 'negatief aantal')
 end)

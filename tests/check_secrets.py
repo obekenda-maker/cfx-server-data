@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 files = subprocess.check_output(["git", "ls-files", "-co", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
 PATTERNS = {
     "Discord-webhook-URL": r"discord(?:app)?\.com/api/webhooks/\d+/[\w-]+",
-    "Database-URI met wachtwoord": r"mysql://[^:\s'\"/]+:(?!WACHTWOORD|PASSWORD|wachtwoord)[^@\s'\"]{3,}@",
+    "Database-URI met wachtwoord": r"mysql://[^:\s'\"/]+:(?!WACHTWOORD|PASSWORD|wachtwoord|GEHEIMWACHTWOORD)[^@\s'\"]{3,}@",
     "Cfx licentiesleutel": r"cfxk_[A-Za-z0-9]{12,}",
     "sv_licenseKey met waarde": r"sv_licenseKey\s+\"(?!cfxk_VERVANG_DIT)[^\"]{8,}\"",
 }
@@ -25,7 +25,7 @@ for f in files:
 if any(f in ("secrets.cfg", "server.cfg", ".env") for f in files):
     errors.append("secrets.cfg/server.cfg/.env zit in git")
 gi = (ROOT / ".gitignore").read_text()
-for need in ("*.cfg", "secrets.cfg", ".env"):
+for need in ("*.cfg", "secrets.cfg", ".env", "/backups/"):
     if need not in gi:
         errors.append(f".gitignore mist {need}")
 

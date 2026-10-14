@@ -7,10 +7,10 @@ T = ROOT / "tests"
 steps = [
     ("Lua/JS-syntaxis", "syntax_check.py"), ("Statische analyse (luacheck)", "check_lint.py"),
     ("Manifesten + startvolgorde", "check_manifests.py"), ("Kruisverwijzingen (exports/events/callbacks)", "check_crossrefs.py"),
-    ("Tekstsleutels (NL)", "check_locale.py"), ("Geheimen-scan", "check_secrets.py"),
+    ("Tekstsleutels (NL)", "check_locale.py"), ("Geheimen-scan", "check_secrets.py"), ("Net events/callbacks: spam-bescherming", "check_netevents.py"),
     ("Configbestanden (server.cfg, secrets, waarden)", "check_config.py"), ("Jobcatalogus (config ↔ SQL ↔ teksten)", "check_jobs.py"), ("Zone-lint (RP-bescherming)", "check_zones.py"),
-    ("Economie-beleid", "check_economy.py"), ("SQL-import (2×, MariaDB)", "test_sql.py"), ("SQL-statements uit de code (PREPARE)", "test_sql_statements.py"),
-    ("Lua-servertests", "run_tests.py"), ("Herstart-persistentie", "test_restart.py"), ("NUI HUD in Chromium", "test_nui.py"), ("NUI welkom in Chromium", "test_nui_welcome.py"), ("Welkomstdocumenten = bron", "gen_welcome_check.py"),
+    ("Economie-beleid", "check_economy.py"), ("SQL-import (2×, MariaDB)", "test_sql.py"), ("Scripts: shellcheck + backup/restore + import-sql", "test_scripts.py"), ("SQL-statements uit de code (PREPARE)", "test_sql_statements.py"),
+    ("Lua-servertests", "run_tests.py"), ("Herstart-persistentie", "test_restart.py"), ("Admin-rechtenmatrix (19 acties × 5 rollen)", "test_admin_matrix.py"), ("NUI HUD in Chromium", "test_nui.py"), ("NUI welkom in Chromium", "test_nui_welcome.py"), ("Welkomstdocumenten = bron", "gen_welcome_check.py"),
 ]
 rows, detail, ok_all = [], [], True
 for name, script in steps:
@@ -23,10 +23,15 @@ for name, script in steps:
         parts = re.findall(r"\[([^\]]+)\] (\d+) geslaagd, (\d+) mislukt", out)
         summary = ", ".join(f"{n}: {p}/{int(p)+int(f)}" for n, p, f in parts)
         total = sum(int(p) for _, p, _ in parts); summary = f"{total} checks ({summary})"
+    elif script == "test_scripts.py":
+        parts = re.findall(r"\[(test_[a-z_]+)\] (\d+) geslaagd, (\d+) mislukt", out)
+        summary = f"shellcheck schoon; " + ", ".join(f"{n}: {p}/{int(p)+int(f)}" for n, p, f in parts)
     elif script in ("test_nui.py", "test_nui_welcome.py"):
         m = re.search(r"(\d+) geslaagd, (\d+) mislukt", out); summary = f"{m.group(1)} checks" if m else out.strip()[:80]
     else:
         summary = [l for l in out.strip().splitlines() if l.strip()][-1] if out.strip() else ""
+        if script == "test_sql_statements.py":
+            summary = re.search(r"\d+ SQL-statements gevalideerd tegen MariaDB, \d+ fout\(en\)", out).group(0)
         if script == "check_crossrefs.py":
             summary = re.search(r"\d+ bestanden, \d+ fout\(en\)", out).group(0)
     rows.append((name, "✅ geslaagd" if ok else "❌ MISLUKT", summary))
@@ -61,6 +66,13 @@ Omgeving: Lua 5.4 (lupa), luacheck 1.1.2, MariaDB 10.11.14, Chromium (Playwright
 | **Persistentie na restart** | Twee opeenvolgende Lua-runtimes op dezelfde database: stats, dagcap, gang/kas/grades/territorium, voertuigen (garage + depot), bans, warnings, dagelijkse limieten |
 | **SQL** | `sql/01–03` 2× achter elkaar in MariaDB (idempotent); alle queries via parameter-binding |
 | **NUI** | Echte `index.html/style.css/app.js` in Chromium: berichten met ontbrekende/extreme waarden, killfeed-limiet, XSS via spelersnamen, geen console-fouten |
+| **Jobsysteem** | Catalogus ↔ SQL ↔ database-diff, expliciet `jobsync` (alleen superadmin/console, raakt andere jobs niet), Jobcentrum (alleen publieke jobs, cooldown, daglimiet, geen ontsnapping uit politie/ambulance) |
+| **Regels/welkom** | Akkoord per license, server-afgedwongen timeout-kick, decline, regelversie, `/akkoord`-noodoplossing, fail-open bij kapotte database; NUI in Chromium (knoppen, Escape, onboarding, waypoint, XSS) |
+| **Bescherming RP-gebieden** | SafeZones (join geweigerd, deelnemer eruit bij betreden, tijdelijke/statische zone op RP-punt geweigerd) + zone-lint (geen overlap PvP/gangoorlog met RP-punten) |
+| **Economie-beleid** | `check_economy.py`: combat-dagcap ≤ beste burgerbaan, zwarte markt ≥1,5× legaal, salarissen/uur, geldputten; rapport `docs/ECONOMIE.md` |
+| **Adminrechten** | 19 acties × 5 rollen echt uitgevoerd en vergeleken met de config (`docs/ADMIN_RECHTEN.md`); audit van alle net events en 53 server-callbacks op spam-bescherming |
+| **Back-up/herstel** | `backup.sh`/`restore.sh`: dump, checksum, rechten, versleuteld config-archief, retentie, lock, byte-gelijk herstel, weigeren van beschadigde back-ups, wachtwoord niet zichtbaar; `import-sql.sh` (idempotent, exit-codes); shellcheck |
+| **SQL-statements** | alle 50 statements uit de Lua-code gevalideerd tegen het echte schema (PREPARE) |
 | **Kwaliteit** | luacheck (geen waarschuwingen), manifesten, kruisverwijzingen, tekstsleutels, geheimen-scan |
 
 ## Alleen via CODE gecontroleerd (NIET uitgevoerd)
@@ -71,6 +83,9 @@ Omgeving: Lua 5.4 (lupa), luacheck 1.1.2, MariaDB 10.11.14, Chromium (Playwright
 | **Echte ESX/ox_lib/oxmysql-versies** (API-vormen) | bronnen niet op te halen; zie API-lijst in `docs/TESTEN.md` |
 | **`weaponDamageEvent`** in een echte server | server-side schadebescherming; gedrag in-game te bevestigen |
 | **ESX-eigen persistentie** (users: geld, job, positie, inventaris, loadout; personages/esx_identity) | beheerd door ESX, niet door onze code |
+| **Multiplayer-/integratietests met echte spelers** | `docs/MULTIPLAYER_CHECKLIST.md` – **nog niet uitgevoerd**; zonder deze tests is de server niet vrijgegeven |
+| Hostingstappen (VPS/Pterodactyl/Windows) op een echte omgeving | scripts getest, de hoster-specifieke stappen niet |
+| Back-up-cron op jouw server en herstel op andere DB-versie | niet getest |
 | Prestaties onder belasting (`resmon`) | geen echte server; alleen codeanalyse (lussen, queries, diff-updates) |
 | Netwerkgedrag, latency, meerdere gelijktijdige clients | niet te simuleren |
 """

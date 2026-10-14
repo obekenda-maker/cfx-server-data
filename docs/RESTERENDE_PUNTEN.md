@@ -3,6 +3,10 @@
 Dit is de eerlijke lijst van wat **niet** is geverifieerd of door jou moet worden ingesteld.
 Bekende *code*-fouten waren er na de laatste testronde niet; de risico's zitten in wat zonder GTA/ESX niet te testen is.
 
+## 0. Release-blokkade
+
+**Het multiplayer-testplan (`docs/MULTIPLAYER_CHECKLIST.md`) is nog niet uitgevoerd.** Tot dan is de server niet vrijgegeven; zie `docs/RELEASE_CHECKLIST.md`.
+
 ## A. Moet je in-game verifiëren (nog nooit gedraaid)
 1. **Alle clientcode**: zones/blips/markers, binnenkomst-prompt, bystander (onkwetsbaar + niet schieten + naar buiten zetten), spawn/teleport
    met grondhoogte, loadouts, death-camera/respawn, protectie-effect, menu's, progressbars, politie-animaties/boeien/begeleiden, taxi-meter.
@@ -21,6 +25,14 @@ Bekende *code*-fouten waren er na de laatste testronde niet; de risico's zitten 
 5. **Salarissen/prijzen/beloningen** zijn startwaarden (`sql/02_jobs_items.sql`, `*/config.lua`). Balanceer na een testperiode:
    `CombatCfg.Rewards` (dagcap, uurbudget), bezorg-`pay`/`dailyMax`, voertuig-/winkelprijzen.
 6. **Brandstof**: de HUD leest `GetVehicleFuelLevel`; er is geen brandstofsysteem meegeleverd.
+
+## B2. Nieuw in fase 3 (ook handmatig te controleren)
+1. **Territoria `grove`/`davis`/`mirror`** zijn in fase 3 verplaatst of nieuw gekozen zodat ze niet op winkels/RP-punten liggen; de zone-lint bewijst de afstanden tussen de **config**-coördinaten, niet dat de plek in-game begaanbaar is → controleer met `/coords`.
+2. **SafeZones** (`CombatCfg.SafeZones`) zijn straalcirkels rond bekende RP-punten; controleer in-game dat ze de gebouwen/straten dekken (bij MLO's aanpassen).
+3. **`esx_identity` + akkoord-pagina:** de akkoordpagina wacht tot er geen andere NUI focus heeft. Controleer met een nieuw account of het personagescherm en de regels elkaar niet in de weg zitten.
+4. **`minPolice = 0`** voor illegale activiteiten (zodat testen met weinig spelers kan); zet het hoger zodra er politie speelt.
+5. **Jobs-sync:** het commando `jobsync` schrijft alleen de catalogus-jobs; na een wijziging altijd de server herstarten.
+6. **Anticheat, voicechat, brandstof, sleutels** ontbreken (zie `docs/ONTBREKENDE_ASSETS.md`).
 
 ## C. Bekende beperkingen (bewust of niet gebouwd)
 * **Ganggevechten overleven geen herstart** (zone + betaalde kosten gaan verloren); territoriumeigendom blijft wel bewaard.

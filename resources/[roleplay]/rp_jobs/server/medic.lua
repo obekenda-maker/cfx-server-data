@@ -53,6 +53,7 @@ end)
 -- Hulp melden → alle medics op dienst
 ---------------------------------------------------------------------------
 lib.callback.register('rp_jobs:callMedics', function(source)
+    if not Jobs.throttle(source, 'callm', 1000) then return { ok = false, msg = 'jobs.too_fast' } end
     if not isDown(source) then return { ok = false, msg = 'jobs.not_down' } end
     local now = GetGameTimer()
     if callAt[source] and now - callAt[source] < D.callCooldownSeconds * 1000 then
@@ -75,6 +76,7 @@ end)
 -- Revive door medic
 ---------------------------------------------------------------------------
 lib.callback.register('rp_jobs:revive', function(source, targetId)
+    if not Jobs.throttle(source, 'revive', 1000) then return { ok = false, msg = 'jobs.too_fast' } end
     local xMedic = ESX.GetPlayerFromId(source)
     if not xMedic or Jobs.jobName(xMedic) ~= D.medicJob then return { ok = false, msg = 'jobs.not_medic' } end
     targetId = tonumber(targetId)
@@ -107,6 +109,7 @@ end)
 -- Ziekenhuis-respawn (kosten nooit hoger dan het bezit van de speler)
 ---------------------------------------------------------------------------
 lib.callback.register('rp_jobs:hospitalRespawn', function(source)
+    if not Jobs.throttle(source, 'hresp', 2000) then return { ok = false, msg = 'jobs.too_fast' } end
     if not isDown(source) then return { ok = false, msg = 'jobs.not_down' } end
     local inCombat = false
     pcall(function() inCombat = exports.combat_core:IsInCombat(source) end)

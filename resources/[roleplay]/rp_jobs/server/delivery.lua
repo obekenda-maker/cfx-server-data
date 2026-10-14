@@ -35,6 +35,7 @@ lib.callback.register('rp_jobs:delivery:start', function(source, kind)
 end)
 
 lib.callback.register('rp_jobs:delivery:finish', function(source)
+    if not Jobs.throttle(source, 'dfinish', 1500) then return { ok = false, msg = 'jobs.too_fast' } end
     local m = missions[source]
     if not m then return { ok = false, msg = 'jobs.no_mission' } end
     local cfg = JobsCfg.Delivery[m.kind]

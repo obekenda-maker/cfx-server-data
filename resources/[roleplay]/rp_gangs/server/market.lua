@@ -44,6 +44,7 @@ end
 -- Zwarte markt
 ---------------------------------------------------------------------------
 lib.callback.register('rp_gangs:market:info', function(source)
+    if not Gang.throttle(source, 'minfo', 700) then return { ok = false, msg = 'gang.too_fast' } end
     local gang = Gang.of(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not gang or not xPlayer then return { ok = false, msg = 'gang.market_members_only' } end
@@ -64,6 +65,7 @@ lib.callback.register('rp_gangs:market:info', function(source)
 end)
 
 lib.callback.register('rp_gangs:market:buy', function(source, kind, key, count)
+    if not Gang.throttle(source, 'mbuy', 800) then return { ok = false, msg = 'gang.too_fast' } end
     local gang = Gang.of(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not gang or not xPlayer then return { ok = false, msg = 'gang.market_members_only' } end
@@ -124,6 +126,7 @@ local function activityById(id)
 end
 
 lib.callback.register('rp_gangs:activity:start', function(source, id)
+    if not Gang.throttle(source, 'astart', 1500) then return { ok = false, msg = 'gang.too_fast' } end
     local act = activityById(id)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not act or not xPlayer then return { ok = false, msg = 'gang.invalid' } end
@@ -141,6 +144,7 @@ lib.callback.register('rp_gangs:activity:start', function(source, id)
 end)
 
 lib.callback.register('rp_gangs:activity:finish', function(source, id)
+    if not Gang.throttle(source, 'afin', 1000) then return { ok = false, msg = 'gang.too_fast' } end
     local act = activityById(id)
     local run = activeActivity[source]
     local xPlayer = ESX.GetPlayerFromId(source)
@@ -165,6 +169,7 @@ end)
 -- Hehler: illegale spullen → zwart geld (met daglimiet)
 ---------------------------------------------------------------------------
 lib.callback.register('rp_gangs:fence:sell', function(source, item, count)
+    if not Gang.throttle(source, 'fsell', 1000) then return { ok = false, msg = 'gang.too_fast' } end
     local xPlayer = ESX.GetPlayerFromId(source)
     local price = type(item) == 'string' and Fence.prices[item]
     if not xPlayer or not price then return { ok = false, msg = 'gang.invalid' } end

@@ -5,6 +5,12 @@ Mock.load('rp_jobs', RES .. 'config.lua')
 for _, f in ipairs({ 'main', 'police', 'medic', 'mechanic', 'taxi', 'delivery' }) do Mock.load('rp_jobs', RES .. 'server/' .. f .. '.lua') end
 Mock.stepThreads()
 
+--- Callback met een korte klokstap ervoor: de nieuwe spam-throttles (≤2 s) mogen de échte cooldowns niet maskeren
+local function slow(name, src, ...)
+    Mock.advance(2100)
+    return Mock.callback(name, src, ...)
+end
+
 local deposits = {}
 AddEventHandler('esx_addonaccount:getSharedAccount', function(name, cb)
     cb({ addMoney = function(m) deposits[name] = (deposits[name] or 0) + m end })
@@ -95,22 +101,22 @@ Test.case('dood: RDM-logging, hulp melden, revive, ziekenhuis', function()
     Test.ok(#Mock.logsOf('suspicious') >= 1, 'herhaald → suspicious')
 
     -- hulp melden
-    local c = Mock.callback('rp_jobs:callMedics', 2)
+    local c = slow('rp_jobs:callMedics', 2)
     Test.eq(c.msg, 'jobs.call_sent', 'melding verstuurd')
     Test.eq(#Mock.eventsNamed('rp_jobs:medicCall', 1), 1, 'medic ontving melding')
-    Test.eq(Mock.callback('rp_jobs:callMedics', 2).msg, 'jobs.call_wait', 'cooldown')
+    Test.eq(slow('rp_jobs:callMedics', 2).msg, 'jobs.call_wait', 'cooldown')
 
     -- revive
     Mock.advance(5000)
-    Test.eq(Mock.callback('rp_jobs:revive', 3, 2).msg, 'jobs.not_medic', 'geen medic')
+    Test.eq(slow('rp_jobs:revive', 3, 2).msg, 'jobs.not_medic', 'geen medic')
     Mock.players[2].coords = at(30, 0)
-    Test.eq(Mock.callback('rp_jobs:revive', 1, 2).msg, 'jobs.too_far', 'te ver')
+    Test.eq(slow('rp_jobs:revive', 1, 2).msg, 'jobs.too_far', 'te ver')
     Mock.players[2].coords = at(2, 0)
     Mock.players[2].health = 200
-    Test.eq(Mock.callback('rp_jobs:revive', 1, 2).msg, 'jobs.not_down', 'niet down')
+    Test.eq(slow('rp_jobs:revive', 1, 2).msg, 'jobs.not_down', 'niet down')
     Mock.players[2].health = 0
     Mock.advance(4000)
-    local r = Mock.callback('rp_jobs:revive', 1, 2)
+    local r = slow('rp_jobs:revive', 1, 2)
     Test.ok(r.ok, 'revive')
     Test.eq(patient.money, 0, 'behandelkosten (max wat de speler heeft)')
     Test.eq(deposits.society_ambulance, 100, 'kosten naar society')
@@ -119,15 +125,15 @@ Test.case('dood: RDM-logging, hulp melden, revive, ziekenhuis', function()
     -- ziekenhuis
     Mock.players[2].health = 0
     Mock.fire('rp_jobs:died', 2)
-    Test.eq(Mock.callback('rp_jobs:hospitalRespawn', 2).msg, 'jobs.respawn_wait', 'te vroeg')
+    Test.eq(slow('rp_jobs:hospitalRespawn', 2).msg, 'jobs.respawn_wait', 'te vroeg')
     Mock.advance(JobsCfg.Death.respawnAfterSeconds * 1000 + 1000)
     patient.money = 100
-    local h = Mock.callback('rp_jobs:hospitalRespawn', 2)
+    local h = slow('rp_jobs:hospitalRespawn', 2)
     Test.ok(h.ok, 'ziekenhuis-respawn')
     Test.eq(h.fee, 100, 'kosten nooit hoger dan bezit')
     Test.ok(h.spawn.x ~= nil, 'spawn gekozen')
     Mock.players[2].health = 200
-    Test.eq(Mock.callback('rp_jobs:hospitalRespawn', 2).msg, 'jobs.not_down', 'levend: niet toegestaan')
+    Test.eq(slow('rp_jobs:hospitalRespawn', 2).msg, 'jobs.not_down', 'levend: niet toegestaan')
 end)
 
 Test.case('dood in PvP wordt niet door rp_jobs afgehandeld', function()
@@ -137,7 +143,7 @@ Test.case('dood in PvP wordt niet door rp_jobs afgehandeld', function()
     Mock.players[1].health = 0
     Mock.fire('rp_jobs:died', 1, 2)
     Test.eq(#Mock.logsOf('combat'), 0, 'geen RDM-log tijdens PvP')
-    Test.eq(Mock.callback('rp_jobs:hospitalRespawn', 1).msg, 'jobs.in_pvp', 'geen ziekenhuis-respawn in PvP')
+    Test.eq(slow('rp_jobs:hospitalRespawn', 1).msg, 'jobs.in_pvp', 'geen ziekenhuis-respawn in PvP')
     Mock.registry.combat_core = nil
 end)
 
@@ -145,7 +151,7 @@ Test.case('bezorging: route, anti-teleport, voertuig, daglimiet', function()
     reset()
     local cfg = JobsCfg.Delivery.courier
     local xp = Mock.addPlayer(1, { job = 'courier', coords = at(cfg.depot.coords.x, cfg.depot.coords.y, cfg.depot.coords.z) })
-    Test.eq(Mock.callback('rp_jobs:delivery:finish', 1).msg, 'jobs.no_mission', 'geen missie')
+    Test.eq(slow('rp_jobs:delivery:finish', 1).msg, 'jobs.no_mission', 'geen missie')
 
     local r = Mock.callback('rp_jobs:delivery:start', 1, 'courier')
     Test.ok(r.ok and r.route.pay > 0, 'missie gestart')
@@ -155,7 +161,7 @@ Test.case('bezorging: route, anti-teleport, voertuig, daglimiet', function()
     Mock.setVehicleOf(1, 11)
     Mock.players[1].coords = at(dest.x, dest.y, dest.z)
     Mock.advance(1000)
-    local f = Mock.callback('rp_jobs:delivery:finish', 1)
+    local f = slow('rp_jobs:delivery:finish', 1)
     Test.eq(f.msg, 'jobs.too_fast_delivery', 'teleport-claim geweigerd')
     Test.ok(#Mock.logsOf('suspicious') >= 1, 'suspicious gelogd')
     Test.eq(xp.money, 1000, 'geen geld')
@@ -170,13 +176,13 @@ Test.case('bezorging: route, anti-teleport, voertuig, daglimiet', function()
     Mock.players[1].coords = at(dest.x, dest.y, dest.z)
     Mock.setVehicleOf(1, 0)
     Mock.advance(meters / cfg.maxSpeed * 1000 + 2000)
-    Test.eq(Mock.callback('rp_jobs:delivery:finish', 1).msg, 'jobs.wrong_vehicle', 'geen voertuig')
+    Test.eq(slow('rp_jobs:delivery:finish', 1).msg, 'jobs.wrong_vehicle', 'geen voertuig')
     Mock.setVehicleOf(1, 11)
-    f = Mock.callback('rp_jobs:delivery:finish', 1)
+    f = slow('rp_jobs:delivery:finish', 1)
     Test.ok(f.ok, 'bezorging betaald')
     Test.eq(xp.money, 1000 + f.param, 'geld ontvangen')
     Test.eq(DB.scalar('SELECT `amount` FROM rp_cooldowns WHERE identifier = ? AND `action` = ?', { xp.identifier, 'delivery:courier' }), f.param, 'daglimiet geregistreerd')
-    Test.eq(Mock.callback('rp_jobs:delivery:finish', 1).msg, 'jobs.no_mission', 'niet dubbel betaald')
+    Test.eq(slow('rp_jobs:delivery:finish', 1).msg, 'jobs.no_mission', 'niet dubbel betaald')
 
     -- daglimiet
     DB.exec('UPDATE rp_cooldowns SET `amount` = ? WHERE identifier = ?', { cfg.dailyMax, xp.identifier })

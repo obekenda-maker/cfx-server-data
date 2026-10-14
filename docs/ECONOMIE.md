@@ -10,8 +10,8 @@ de ESX-standaard is korter, waardoor salarissen veel te hoog uitvallen. Controle
 | Bron | Maximaal per speler per dag | Opmerking |
 |---|---|---|
 | Salaris (per grade) | zie tabel | uitbetaling per 30 min (aanname); ESX bepaalt het interval |
-| Bezorging: Vrachtwagenchauffeur | €6,000 | server-begrensd (dailyMax in DB) |
 | Bezorging: Bezorger | €3,000 | server-begrensd (dailyMax in DB) |
+| Bezorging: Vrachtwagenchauffeur | €6,000 | server-begrensd (dailyMax in DB) |
 | Combat-kills (geld) | €3,000 | + globaal uurbudget 60,000/uur voor de hele server |
 | Taxi | ≤ 1500 per rit | overdracht van passagier (geen nieuw geld) |
 | Hehler (zwart geld) | €6,000 | alleen na activiteit 'schroot' (item-limiet) |
