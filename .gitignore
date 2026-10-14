@@ -2,3 +2,9 @@
 /cache/
 /resources/\[local\]/
 /db/
+# Geheimen / lokale server-data
+.env
+secrets.cfg
+/txData/
+*.log
+/tests/__pycache__/

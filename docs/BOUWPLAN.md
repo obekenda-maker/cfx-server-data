@@ -60,9 +60,16 @@ ESX, ox_lib en oxmysql worden **niet** in deze repo meegeleverd (upstream, regel
 7. [x] `admin_tools`
 8. [x] Tests (lupa), install-scripts, `server.cfg.example`, README, installatiehandleiding
 
+## 4b. Testresultaat
+
+`python3 tests/run_all.py`: syntax (59 bestanden), manifesten (11 resources), teksten (414 sleutels), SQL (2× import in MariaDB 10.11)
+en 425 Lua-checks over 6 testbestanden – allemaal geslaagd. Zie README → Tests voor wat wel/niet gedekt is.
+
 ## 5. Beperkingen (eerlijk)
 
 * Er kon in deze omgeving **geen FXServer/GTA** draaien: alle scripts zijn syntactisch gecontroleerd en de server-logica is getest met gemockte ESX/ox_lib/oxmysql (`tests/`). **In-game testen moet jij nog doen** – zie `docs/TESTEN.md` (checklist).
 * ESX/ox_lib-broncode kon niet worden opgehaald (netwerk). Er zijn alleen API's gebruikt die in ESX Legacy / ox_lib / oxmysql gedocumenteerd of in de officiële ESX-resources gebruikt worden; `docs/TESTEN.md` bevat een verificatielijst voor jouw exacte versie.
 * Zonecoördinaten, garages, shops en bezorgpunten zijn best-effort bekende GTA-locaties. Controleer ze in-game (`/coords` voor admins).
 * `ox_inventory` en `esx_multicharacter` zijn niet getest (identifier-prefix `charN:` werkt wel).
+* Lopende ganggevechten gaan verloren bij een server-/resource-herstart (de kosten ook); territoriumeigendom blijft bewaard.
+* Honger/dorst worden na een gewone ziekenhuis-respawn door `esx_basicneeds` gereset (ESX-standaard); in PvP-zones is dat afgevangen.

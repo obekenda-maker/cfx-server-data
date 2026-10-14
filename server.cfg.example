@@ -1,0 +1,82 @@
+# =====================================================================
+#  Nederland Combat RP – server.cfg (voorbeeld, GEEN geheimen)
+#  Kopieer naar server.cfg. Geheimen (licentiesleutel, database-wachtwoord,
+#  Discord-webhooks) horen in secrets.cfg (zie secrets.cfg.example).
+#  Beide bestanden staan in .gitignore (*.cfg) en worden dus niet gecommit.
+# =====================================================================
+
+# ---- Netwerk ---------------------------------------------------------
+endpoint_add_tcp "0.0.0.0:30120"
+endpoint_add_udp "0.0.0.0:30120"
+
+# ---- Server-info -----------------------------------------------------
+sv_hostname "Nederland Combat RP | ESX | PvP + Roleplay"
+sets sv_projectName "Nederland Combat RP"
+sets sv_projectDesc "Nederlandse ESX Legacy server: roleplay en PvP combat zones"
+sets locale "nl-NL"
+sets tags "esx, roleplay, pvp, nederlands"
+# load_server_icon myLogo.png    # eigen 96x96 PNG naast server.cfg
+sv_maxclients 48
+
+# OneSync is VERPLICHT (server-side coördinaten, state bags, voertuigcontrole)
+set onesync on
+sv_scriptHookAllowed 0
+
+# ---- Geheimen --------------------------------------------------------
+exec secrets.cfg
+
+# ---- Database --------------------------------------------------------
+# De connection string staat in secrets.cfg (set mysql_connection_string "...")
+set mysql_slow_query_warning 200
+
+# ---- Basis (cfx-server-data) ----------------------------------------
+ensure mapmanager
+ensure chat
+ensure chat-theme-gtao
+ensure spawnmanager
+ensure sessionmanager
+ensure hardcap
+ensure rconlog
+
+# ---- Kern: database, UI-bibliotheek en framework ---------------------
+ensure oxmysql
+ensure ox_lib
+ensure es_extended
+
+# ---- ESX-resources (volgorde belangrijk) -----------------------------
+ensure esx_menu_default
+ensure esx_menu_dialog
+ensure esx_menu_list
+ensure skinchanger
+ensure esx_skin
+ensure esx_identity
+ensure esx_addonaccount
+ensure esx_addoninventory
+ensure esx_datastore
+ensure esx_society
+ensure esx_status
+ensure esx_basicneeds
+ensure esx_license
+
+# ---- Eigen resources -------------------------------------------------
+# NIET starten: esx_ambulancejob / esx_policejob / esx_mechanicjob / esx_vehicleshop /
+# esx_shops / esx_weaponshop / esx_advancedgarage / eigen HUD-resources.
+# rp_jobs, rp_garages, rp_shops en server_hud vervangen die (anders dubbele systemen).
+ensure server_config
+ensure server_logs
+ensure combat_stats
+ensure combat_core
+ensure rp_jobs
+ensure rp_garages
+ensure rp_shops
+ensure rp_interactions
+ensure rp_gangs
+ensure admin_tools
+ensure server_hud
+
+# ---- Beheerders ------------------------------------------------------
+# Rechten komen uit de ESX-groep van de speler (users.group). Geef een groep via de
+# SERVERCONSOLE:  setgroup <speler-id> admin     (of superadmin)
+# Optioneel voor txAdmin/rcon-commando's (vervang door jouw license-identifier):
+# add_ace group.admin command allow
+# add_principal identifier.license:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX group.admin
