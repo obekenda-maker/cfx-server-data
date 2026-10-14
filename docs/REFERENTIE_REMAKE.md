@@ -43,3 +43,27 @@ kaart op de nieuwe server staat. De rest is niet in-game geverifieerd.
 2. API-verificatie tegen ESX 1.13.5 (`GetPlayerFromId`, xPlayer-methoden,
    `esx:playerLoaded`, `esx_status`-events). Zie `RESTERENDE_PUNTEN.md`.
 3. Jobscripts alleen inzien via een bestandslijst van de rars (niet uitpakken).
+
+## API-vergelijking met es_extended 1.13.5 (alleen namen en signaturen)
+
+Bron: functielijst uit `server/classes/player.lua` en de trigger-regels van de events,
+aangeleverd door de pc-sessie. Vergeleken met alle ESX-aanroepen in `resources/`.
+
+- **Server-methoden:** alle 19 gebruikte methoden bestaan (`getName`, `addMoney`,
+  `removeMoney`, `getMoney`, `getJob`, `getGroup`, `getAccount`, `addAccountMoney`,
+  `removeAccountMoney`, `canCarryItem`, `getInventoryItem`, `addInventoryItem`,
+  `removeInventoryItem`, `hasWeapon`, `addWeapon`, `updateWeaponAmmo`, `getLoadout`,
+  `getInventory`, `setJob`). `setJob(newJob, grade, onDuty)` heeft een extra
+  optionele derde parameter.
+- **Events:** `esx:playerLoaded` (server: `playerId, xPlayer, isNew`), `esx:setJob`
+  (server: `source, job, lastJob`) en `esx:onPlayerDeath` komen overeen met het gebruik.
+- **esx_status / esx_basicneeds:** client-events `esx_status:add/set/getStatus/onTick`
+  en `esx_basicneeds:onEat/onDrink` bestaan.
+- **Niet bevestigd:** `esx:onPlayerSpawn` (wordt door mijn code afgevuurd en door
+  esx_basicneeds beluisterd; niet in de lijst van es_extended zelf) en het gedrag
+  van de methoden. Dat blijft een test in-game.
+- **Extra in 1.13.5:** tweede job (`getJob2`/`setJob2`, `esx:setJob2`), `getSSN`, meta-functies.
+  Niet gebruikt; de combat- en jobcode kijkt alleen naar de eerste job.
+- **Versies elders:** ox_lib 3.39.0 en oxmysql 2.14.1; nog niet vergeleken met mijn aanroepen.
+- esx_basicneeds roept `setPedProp`/`clearPedProp` aan uit `rlrp_smallresources`, dat in
+  de map ontbreekt. Zonder die resource kan het fout geven bij eten of drinken.

@@ -12,6 +12,7 @@ Bekende *code*-fouten waren er na de laatste testronde niet; de risico's zitten 
    met grondhoogte, loadouts, death-camera/respawn, protectie-effect, menu's, progressbars, politie-animaties/boeien/begeleiden, taxi-meter.
    → checklist in `docs/TESTEN.md` (§3).
 2. **ESX/ox_lib/oxmysql-API's** tegen jouw versies → tabel in `docs/TESTEN.md` (§2). Een afwijking is meestal één regel.
+   *Deels gedaan:* ESX-methoden en -events zijn vergeleken met een lijst uit es_extended 1.13.5 (zie `docs/REFERENTIE_REMAKE.md`). Alleen namen en signaturen; het gedrag in de praktijk blijft ongetest. ox_lib en oxmysql: nog niet vergeleken.
 3. **`weaponDamageEvent`** (server-side schadebescherming tussen deelnemers/niet-deelnemers). Werkt het niet, dan blijft de
    client-bescherming (onkwetsbaar/geen vuren) staan en loopt er geen script-error; test met 2 clients.
 4. **Esx_status events** (`esx_status:onTick/getStatus/set/add`) en `esx_basicneeds:onEat/onDrink`: HUD toont honger/dorst alleen als die kloppen.
