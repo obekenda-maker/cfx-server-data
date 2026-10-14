@@ -25,6 +25,8 @@ add({
     ['combat.zone_full']        = 'Deze zone zit vol.',
     ['combat.level_low']        = 'Je hebt combatlevel %d nodig voor deze zone.',
     ['combat.not_in_zone']      = 'Je staat niet in de zone.',
+    ['combat.safe_zone']        = 'Dit is een beschermd roleplaygebied: PvP is hier niet mogelijk.',
+    ['combat.left_safe']        = 'Je hebt een beschermd roleplaygebied betreden: PvP verlaten.',
     ['combat.in_vehicle']       = 'Stap eerst uit je voertuig.',
     ['combat.dead']             = 'Je kunt niet deelnemen terwijl je bewusteloos bent.',
     ['combat.cuffed']           = 'Je kunt niet deelnemen terwijl je geboeid bent.',
@@ -472,4 +474,43 @@ add({
     ['admin.cmd_warn']        = 'Waarschuw een speler',
     ['admin.cmd_warnings']    = 'Bekijk waarschuwingen van een speler',
     ['admin.cmd_check']       = 'Bekijk gegevens van een speler',
+})
+
+---------------------------------------------------------------------------
+-- Jobcentrum en uitleg per baan (/baan en Jobcentrum)
+---------------------------------------------------------------------------
+add({
+    ['jobs.cmd_job']          = 'Uitleg bij je huidige baan',
+    ['jobs.info_header']      = 'Jouw baan: %s – %s',
+    ['jobs.jc_prompt']        = '[E] %s',
+    ['jobs.jc_line']          = 'Startsalaris €%d • %s',
+    ['jobs.jc_apply']         = 'Aanmelden',
+    ['jobs.jc_back']          = 'Terug',
+    ['jobs.jc_quit_title']    = 'Stoppen met je huidige baan (werkloos)',
+    ['jobs.jc_locked']        = 'Je kunt niet via het Jobcentrum stoppen met deze baan. Spreek je leidinggevende (bossmenu) of een beheerder aan.',
+    ['jobs.jc_already']       = 'Je hebt deze baan al.',
+    ['jobs.jc_wait']          = 'Je kunt pas over %d seconden van baan wisselen.',
+    ['jobs.jc_daily']         = 'Je hebt vandaag al vaak van baan gewisseld. Probeer het morgen opnieuw.',
+    ['jobs.jc_hired']         = 'Je bent aangenomen als %s. Gebruik /baan voor uitleg.',
+    ['jobs.jc_quit']          = 'Je bent nu werkloos.',
+
+    ['jobs.info_unemployed']  = '**Burger (werkloos)**  \nJe begint als burger. Wat kun je doen?  \n- Ga naar het **Jobcentrum** (blip op de kaart, **E**) en meld je aan als taxichauffeur, vrachtwagenchauffeur, bezorger of monteur.  \n- Koop eten, drinken en EHBO bij de winkels; koop een voertuig bij de dealer (PDM) en parkeer het in een garage.  \n- Wil je meedoen aan PvP? Gebruik **/pvp**. Dat is altijd vrijwillig.  \n- Politie en ambulance zijn alleen op sollicitatie (via de leiding of Discord).  \n- Gebruik **/regels** voor de serverregels en **/help** voor alle commando\'s.',
+
+    ['jobs.info_police_short']    = 'Alleen op sollicitatie',
+    ['jobs.info_police']      = '**Politie**  \n- **Aannemen:** alleen door je commissaris (bossmenu) of een beheerder.  \n- **Dienst:** ga naar het politiebureau en druk **E** bij het dienstpunt. Salaris wordt alleen op dienst uitbetaald; af dienst ben je gewoon burger.  \n- **Acties:** **/politie** (menu) of **/boei**, **/ontboei**, **/fouilleer**. Fouilleren kan alleen bij een geboeide persoon. Begeleiden en boetes (met reden, binnen het ingestelde maximum; het geld gaat naar de politiekas) staan ook in het menu.  \n- **Bossmenu:** alleen de hoogste rang, bij de bossmenu-locatie (**E**).  \n- **PvP:** op dienst kun je **niet** meedoen aan PvP-zones; ga eerst uit dienst. Iemand boeien haalt die persoon uit een PvP-zone.  \n- **Regels:** geen RDM, geweld proportioneel, boetes alleen met een rollenspel-reden.',
+
+    ['jobs.info_ambulance_short'] = 'Alleen op sollicitatie',
+    ['jobs.info_ambulance']    = '**Ambulance**  \n- **Aannemen:** alleen door de chef (bossmenu) of een beheerder.  \n- **Dienst:** ziekenhuis, **E** bij het dienstpunt.  \n- **Hulpmeldingen:** bewusteloze spelers kunnen hulp melden; jij ziet een melding en een knipperende blip.  \n- **Reanimeren:** loop naar de patiënt en druk **E** bij "Reanimeren" (voortgangsbalk). De patiënt betaalt behandelkosten aan de ambulancekas.  \n- **Niet** reanimeren in een PvP-zone; die spelers regelen hun respawn zelf.  \n- **PvP:** op dienst geen deelname aan PvP; ga eerst uit dienst.',
+
+    ['jobs.info_mechanic_short'] = 'Open voor iedereen',
+    ['jobs.info_mechanic']    = '**Monteur**  \n- **Aanmelden:** Jobcentrum. Je begint als leerling; de eigenaar bevordert je via het bossmenu.  \n- **Dienst:** garage van de monteurs, **E** bij het dienstpunt.  \n- **Repareren:** sta naast een voertuig en typ **/repareer**. Je hebt een **reparatiekit** nodig (verbruikt; te koop bij de winkels).  \n- Je verdient salaris op dienst; berekenen aan klanten doe je in rollenspel (**/geefgeld**).',
+
+    ['jobs.info_taxi_short']  = 'Open voor iedereen',
+    ['jobs.info_taxi']        = '**Taxichauffeur**  \n- **Aanmelden:** Jobcentrum.  \n- **Rit:** zit in een voertuig met een passagier en typ **/taxi** → "Taximeter starten". Rijd naar de bestemming en kies "Stoppen en afrekenen".  \n- De **passagier moet het tarief bevestigen**. Het tarief is basisbedrag + prijs per km (met maximum); een deel gaat naar de taxikas. Geld wordt overgedragen, niet bijgemaakt.',
+
+    ['jobs.info_trucker_short'] = 'Open voor iedereen',
+    ['jobs.info_trucker']     = '**Vrachtwagenchauffeur**  \n- **Aanmelden:** Jobcentrum.  \n- **Opdracht:** ga naar het truckdepot (haven), **E** → "Nieuwe opdracht". Je krijgt een bedrijfsvrachtwagen en een route.  \n- **Afleveren:** rijd naar de aangegeven winkel, stop in de markering en druk **E** om te lossen.  \n- **Betaling:** vast bedrag per route; er geldt een daglimiet. Te snel afleveren (teleporten) wordt geweigerd en gelogd.  \n- Lever de wagen aan het einde in bij het depot ("Voertuig inleveren").',
+
+    ['jobs.info_courier_short'] = 'Open voor iedereen',
+    ['jobs.info_courier']     = '**Bezorger**  \n- **Aanmelden:** Jobcentrum.  \n- **Opdracht:** bezorgdepot, **E** → "Nieuwe opdracht". Je krijgt een scooter en een adres.  \n- **Afleveren:** rijd naar de blip en druk **E** om te bezorgen.  \n- **Betaling:** vast bedrag per bezorging met daglimiet.',
 })

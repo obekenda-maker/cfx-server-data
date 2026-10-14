@@ -82,6 +82,7 @@ function Combat.canJoin(src, zoneId)
     if CombatUtil.dist(coords, zone.coords) > zone.radius + CombatCfg.Rules.zoneMargin then
         return false, 'combat.not_in_zone'
     end
+    if Combat.safeZoneAt(coords) then return false, 'combat.safe_zone' end
     if CombatCfg.Rules.blockVehicles and GetVehiclePedIsIn(ped, false) ~= 0 then
         return false, 'combat.in_vehicle'
     end
@@ -417,7 +418,9 @@ function Combat.tick()
         end
         if zone and p.alive then
             local c = Combat.coordsOf(src)
-            if c then
+            if c and Combat.safeZoneAt(c) then
+                Combat.leave(src, 'combat.left_safe')   -- beschermd RP-gebied betreden: altijd uit de PvP
+            elseif c then
                 if CombatUtil.dist(c, zone.coords) > zone.radius + CombatCfg.Rules.zoneMargin then
                     p.outsideTicks = p.outsideTicks + 1
                     if p.outsideTicks >= CombatCfg.Rules.leaveConfirmTicks then

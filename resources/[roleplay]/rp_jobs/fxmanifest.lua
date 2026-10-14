@@ -17,6 +17,7 @@ shared_scripts {
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/main.lua',
+    'server/catalog.lua',
     'server/police.lua',
     'server/medic.lua',
     'server/mechanic.lua',
@@ -27,6 +28,7 @@ server_scripts {
 client_scripts {
     '@server_config/interact.lua',
     'client/main.lua',
+    'client/jobcenter.lua',
     'client/police.lua',
     'client/medic.lua',
     'client/mechanic.lua',

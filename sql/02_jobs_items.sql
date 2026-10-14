@@ -9,56 +9,52 @@
 -- Naamconventie: 'off' + jobnaam = af dienst (salaris 0). De top-grade heet 'boss' (esx_society).
 -- =====================================================================
 
+-- >>> GENERATED JOBS (scripts/gen_jobs_sql.py) – NIET HANDMATIG WIJZIGEN <<<
 INSERT INTO `jobs` (`name`, `label`, `whitelisted`) VALUES
-  ('police',      'Politie',                 1),
-  ('offpolice',   'Politie (af dienst)',     1),
-  ('ambulance',   'Ambulance',               1),
-  ('offambulance','Ambulance (af dienst)',   1),
-  ('mechanic',    'Monteur',                 0),
-  ('offmechanic', 'Monteur (af dienst)',     0),
-  ('taxi',        'Taxichauffeur',           0),
-  ('trucker',     'Vrachtwagenchauffeur',    0),
-  ('courier',     'Bezorger',                0)
-ON DUPLICATE KEY UPDATE `label` = VALUES(`label`);
+  ('police', 'Politie', 1),
+  ('offpolice', 'Politie (af dienst)', 1),
+  ('ambulance', 'Ambulance', 1),
+  ('offambulance', 'Ambulance (af dienst)', 1),
+  ('mechanic', 'Monteur', 0),
+  ('offmechanic', 'Monteur (af dienst)', 0),
+  ('taxi', 'Taxichauffeur', 0),
+  ('trucker', 'Vrachtwagenchauffeur', 0),
+  ('courier', 'Bezorger', 0)
+ON DUPLICATE KEY UPDATE `label` = VALUES(`label`), `whitelisted` = VALUES(`whitelisted`);
 
 DELETE FROM `job_grades` WHERE `job_name` IN
   ('police','offpolice','ambulance','offambulance','mechanic','offmechanic','taxi','trucker','courier');
 
 INSERT INTO `job_grades` (`job_name`, `grade`, `name`, `label`, `salary`, `skin_male`, `skin_female`) VALUES
-  ('police', 0, 'cadet',      'Cadet',        350,  '{}', '{}'),
-  ('police', 1, 'agent',      'Agent',        500,  '{}', '{}'),
-  ('police', 2, 'brigadier',  'Brigadier',    650,  '{}', '{}'),
-  ('police', 3, 'inspecteur', 'Inspecteur',   800,  '{}', '{}'),
-  ('police', 4, 'boss',       'Commissaris',  1000, '{}', '{}'),
-
-  ('offpolice', 0, 'cadet',      'Cadet',       0, '{}', '{}'),
-  ('offpolice', 1, 'agent',      'Agent',       0, '{}', '{}'),
-  ('offpolice', 2, 'brigadier',  'Brigadier',   0, '{}', '{}'),
-  ('offpolice', 3, 'inspecteur', 'Inspecteur',  0, '{}', '{}'),
-  ('offpolice', 4, 'boss',       'Commissaris', 0, '{}', '{}'),
-
+  ('police', 0, 'cadet', 'Cadet', 350, '{}', '{}'),
+  ('police', 1, 'agent', 'Agent', 500, '{}', '{}'),
+  ('police', 2, 'brigadier', 'Brigadier', 650, '{}', '{}'),
+  ('police', 3, 'inspecteur', 'Inspecteur', 800, '{}', '{}'),
+  ('police', 4, 'boss', 'Commissaris', 1000, '{}', '{}'),
+  ('offpolice', 0, 'cadet', 'Cadet', 0, '{}', '{}'),
+  ('offpolice', 1, 'agent', 'Agent', 0, '{}', '{}'),
+  ('offpolice', 2, 'brigadier', 'Brigadier', 0, '{}', '{}'),
+  ('offpolice', 3, 'inspecteur', 'Inspecteur', 0, '{}', '{}'),
+  ('offpolice', 4, 'boss', 'Commissaris', 0, '{}', '{}'),
   ('ambulance', 0, 'ambulancier', 'Ambulancier', 400, '{}', '{}'),
-  ('ambulance', 1, 'verpleger',   'Verpleger',   550, '{}', '{}'),
-  ('ambulance', 2, 'arts',        'Arts',        750, '{}', '{}'),
-  ('ambulance', 3, 'boss',        'Chef',        950, '{}', '{}'),
-
+  ('ambulance', 1, 'verpleger', 'Verpleger', 550, '{}', '{}'),
+  ('ambulance', 2, 'arts', 'Arts', 750, '{}', '{}'),
+  ('ambulance', 3, 'boss', 'Chef', 950, '{}', '{}'),
   ('offambulance', 0, 'ambulancier', 'Ambulancier', 0, '{}', '{}'),
-  ('offambulance', 1, 'verpleger',   'Verpleger',   0, '{}', '{}'),
-  ('offambulance', 2, 'arts',        'Arts',        0, '{}', '{}'),
-  ('offambulance', 3, 'boss',        'Chef',        0, '{}', '{}'),
-
-  ('mechanic', 0, 'leerling', 'Leerling',  250, '{}', '{}'),
-  ('mechanic', 1, 'monteur',  'Monteur',   400, '{}', '{}'),
-  ('mechanic', 2, 'boss',     'Eigenaar',  650, '{}', '{}'),
-
+  ('offambulance', 1, 'verpleger', 'Verpleger', 0, '{}', '{}'),
+  ('offambulance', 2, 'arts', 'Arts', 0, '{}', '{}'),
+  ('offambulance', 3, 'boss', 'Chef', 0, '{}', '{}'),
+  ('mechanic', 0, 'leerling', 'Leerling', 250, '{}', '{}'),
+  ('mechanic', 1, 'monteur', 'Monteur', 400, '{}', '{}'),
+  ('mechanic', 2, 'boss', 'Eigenaar', 650, '{}', '{}'),
   ('offmechanic', 0, 'leerling', 'Leerling', 0, '{}', '{}'),
-  ('offmechanic', 1, 'monteur',  'Monteur',  0, '{}', '{}'),
-  ('offmechanic', 2, 'boss',     'Eigenaar', 0, '{}', '{}'),
-
-  ('taxi',    0, 'chauffeur', 'Chauffeur', 200, '{}', '{}'),
-  ('taxi',    1, 'boss',      'Manager',   400, '{}', '{}'),
+  ('offmechanic', 1, 'monteur', 'Monteur', 0, '{}', '{}'),
+  ('offmechanic', 2, 'boss', 'Eigenaar', 0, '{}', '{}'),
+  ('taxi', 0, 'chauffeur', 'Chauffeur', 200, '{}', '{}'),
+  ('taxi', 1, 'boss', 'Manager', 400, '{}', '{}'),
   ('trucker', 0, 'chauffeur', 'Chauffeur', 150, '{}', '{}'),
-  ('courier', 0, 'bezorger',  'Bezorger',  100, '{}', '{}');
+  ('courier', 0, 'bezorger', 'Bezorger', 100, '{}', '{}');
+-- <<< END GENERATED JOBS >>>
 
 -- ---- Items -----------------------------------------------------------
 -- bread en water komen uit es_extended/esx_basicneeds en staan hier bewust niet in.

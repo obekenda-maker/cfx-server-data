@@ -255,3 +255,31 @@ Test.case('streak: groeit per kill, reset bij dood, bonus begrensd', function()
     Test.eq(Combat.Players[1].streak, 0, 'streak reset bij dood')
     Test.eq(exports.combat_stats:Get(1).best_streak, 14, 'beste serie bewaard')
 end)
+
+Test.case('SafeZones: geen PvP-deelname, wegsturen bij betreden, geen overlappende (tijdelijke) zones', function()
+    reset()
+    local safe = { label = 'Testwinkel', coords = { x = HAVEN.x + 60.0, y = HAVEN.y, z = HAVEN.z }, radius = 15.0 }
+    table.insert(CombatCfg.SafeZones, safe)
+    addP(1, { coords = { x = HAVEN.x + 60.0, y = HAVEN.y + 3.0, z = HAVEN.z } })   -- binnen haven-zone ÉN in de safezone
+    Test.eq(join(1).reason, 'combat.safe_zone', 'deelnemen in beschermd gebied geweigerd')
+    Mock.players[1].coords = inside(5)
+    Mock.advance(2000)
+    Test.ok(join(1).ok, 'buiten de safezone wel')
+    Mock.advance(30000)
+    Mock.players[1].coords = { x = HAVEN.x + 60.0, y = HAVEN.y, z = HAVEN.z }
+    Combat.tick()
+    Test.eq(Combat.Players[1], nil, 'deelnemer die een safezone betreedt wordt uit de PvP gehaald')
+    Test.eq(Mock.eventsNamed('combat:left', 1)[1].args[1], 'combat.left_safe', 'reden voor de client')
+    table.remove(CombatCfg.SafeZones)
+
+    -- tijdelijke (gang)zone op een RP-punt wordt geweigerd
+    local pd = CombatCfg.SafeZones[1]
+    local ok = exports.combat_core:CreateTemporaryZone({ id = 'war_bad', coords = { x = pd.coords.x, y = pd.coords.y, z = pd.coords.z }, radius = 50.0, mode = 'ffa' })
+    Test.eq(ok, false, 'tijdelijke zone op politiebureau geweigerd')
+    Test.no(Combat.Zones.war_bad, 'niet geregistreerd')
+    -- statische config-fout wordt overgeslagen en gemeld (geen crash)
+    local count = #Combat.ZoneOrder
+    local fine, err = pcall(Combat.registerZone, { id = 'bad', coords = pd.coords, radius = 30.0, mode = 'ffa' }, false)
+    Test.no(fine, 'registratie faalt')
+    Test.eq(#Combat.ZoneOrder, count, 'zonelijst ongewijzigd')
+end)

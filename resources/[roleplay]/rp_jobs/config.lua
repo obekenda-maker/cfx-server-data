@@ -12,6 +12,81 @@ JobsCfg = {}
 JobsCfg.OffDutyPrefix = 'off'
 
 ---------------------------------------------------------------------------
+-- JOBCATALOGUS – de ENIGE bron voor jobs, jobgrades en salarissen.
+--
+--   name        : ESX-jobnaam (kleine letters)
+--   label       : weergavenaam
+--   public      : true = burgers kunnen zich aanmelden bij het Jobcentrum (alleen grade 0)
+--   whitelisted : true = alleen via bossmenu/admin (ESX-vlag `whitelisted`)
+--   offDuty     : true = er wordt ook een 'off'-variant (af dienst, salaris 0) aangemaakt
+--   info        : tekstsleutel met uitleg voor /baan (staat in server_config/locale_nl.lua)
+--   grades      : { name, label, salary } – salaris per ESX-uitbetaling; de HOOGSTE grade heet 'boss'
+--                 als de job een bedrijfskas/bossmenu heeft (JobsCfg.Societies).
+--
+-- Een wijziging toepassen:
+--   1. pas hier aan,
+--   2. `python3 scripts/gen_jobs_sql.py` (werkt sql/02_jobs_items.sql bij) en importeer die SQL, OF
+--      typ in de SERVERCONSOLE `jobsync` (schrijft de catalogus naar de database),
+--   3. herstart de server (ESX leest jobs alleen bij het opstarten).
+-- Bij elke serverstart waarschuwt rp_jobs in de console als de database afwijkt van deze catalogus.
+-- De ESX-standaardjob 'unemployed' (werkloos) staat bewust niet hier: die levert ESX zelf.
+---------------------------------------------------------------------------
+JobsCfg.Catalog = {
+    {
+        name = 'police', label = 'Politie', public = false, whitelisted = true, offDuty = true, info = 'jobs.info_police',
+        grades = {
+            { name = 'cadet',      label = 'Cadet',       salary = 350 },
+            { name = 'agent',      label = 'Agent',       salary = 500 },
+            { name = 'brigadier',  label = 'Brigadier',   salary = 650 },
+            { name = 'inspecteur', label = 'Inspecteur',  salary = 800 },
+            { name = 'boss',       label = 'Commissaris', salary = 1000 },
+        },
+    },
+    {
+        name = 'ambulance', label = 'Ambulance', public = false, whitelisted = true, offDuty = true, info = 'jobs.info_ambulance',
+        grades = {
+            { name = 'ambulancier', label = 'Ambulancier', salary = 400 },
+            { name = 'verpleger',   label = 'Verpleger',   salary = 550 },
+            { name = 'arts',        label = 'Arts',        salary = 750 },
+            { name = 'boss',        label = 'Chef',        salary = 950 },
+        },
+    },
+    {
+        name = 'mechanic', label = 'Monteur', public = true, whitelisted = false, offDuty = true, info = 'jobs.info_mechanic',
+        grades = {
+            { name = 'leerling', label = 'Leerling', salary = 250 },
+            { name = 'monteur',  label = 'Monteur',  salary = 400 },
+            { name = 'boss',     label = 'Eigenaar', salary = 650 },
+        },
+    },
+    {
+        name = 'taxi', label = 'Taxichauffeur', public = true, whitelisted = false, offDuty = false, info = 'jobs.info_taxi',
+        grades = {
+            { name = 'chauffeur', label = 'Chauffeur', salary = 200 },
+            { name = 'boss',      label = 'Manager',   salary = 400 },
+        },
+    },
+    {
+        name = 'trucker', label = 'Vrachtwagenchauffeur', public = true, whitelisted = false, offDuty = false, info = 'jobs.info_trucker',
+        grades = { { name = 'chauffeur', label = 'Chauffeur', salary = 150 } },
+    },
+    {
+        name = 'courier', label = 'Bezorger', public = true, whitelisted = false, offDuty = false, info = 'jobs.info_courier',
+        grades = { { name = 'bezorger', label = 'Bezorger', salary = 100 } },
+    },
+}
+
+--- Jobcentrum: hier melden burgers zich aan voor `public`-jobs (grade 0) of stoppen ze ermee.
+JobsCfg.JobCenter = {
+    label                 = 'Jobcentrum',
+    coords                = vec3(-268.0, -957.0, 31.2),
+    distance              = 2.5,
+    blip                  = { sprite = 351, colour = 2 },
+    minSecondsBetween     = 600,   -- minimaal zoveel seconden tussen twee baanwissels (voorkomt job-hoppen)
+    maxChangesPerDay      = 6,
+}
+
+---------------------------------------------------------------------------
 -- Dienst in/uit
 ---------------------------------------------------------------------------
 JobsCfg.Duty = {

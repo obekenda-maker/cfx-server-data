@@ -476,7 +476,7 @@ function Mock.loadAll()
     end
     res('combat_stats', '[combat]', { 'config', 'server/main' })
     res('combat_core', '[combat]', { 'config', 'shared/util', 'server/zones', 'server/rules', 'server/rewards', 'server/damage', 'server/main' })
-    res('rp_jobs', '[roleplay]', { 'config', 'server/main', 'server/police', 'server/medic', 'server/mechanic', 'server/taxi', 'server/delivery' })
+    res('rp_jobs', '[roleplay]', { 'config', 'server/main', 'server/catalog', 'server/police', 'server/medic', 'server/mechanic', 'server/taxi', 'server/delivery' })
     res('rp_garages', '[roleplay]', { 'config', 'server/main' })
     res('rp_shops', '[roleplay]', { 'config', 'server/main' })
     res('rp_interactions', '[roleplay]', { 'config', 'server/main' })

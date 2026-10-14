@@ -5,7 +5,8 @@ import pathlib, subprocess, sys
 HERE = pathlib.Path(__file__).resolve().parent
 steps = [("syntax", "syntax_check.py"), ("lint (luacheck)", "check_lint.py"), ("manifesten", "check_manifests.py"),
          ("kruisverwijzingen (exports/events/callbacks)", "check_crossrefs.py"), ("teksten", "check_locale.py"),
-         ("geheimen", "check_secrets.py"), ("sql", "test_sql.py"), ("lua-tests", "run_tests.py"),
+         ("geheimen", "check_secrets.py"), ("configbestanden", "check_config.py"), ("jobcatalogus", "check_jobs.py"), ("zones (RP-bescherming)", "check_zones.py"),
+         ("economie-beleid", "check_economy.py"), ("sql", "test_sql.py"), ("sql-statements", "test_sql_statements.py"), ("lua-tests", "run_tests.py"),
          ("herstart-persistentie", "test_restart.py"), ("NUI (Chromium)", "test_nui.py")]
 failed = []
 for name, script in steps:

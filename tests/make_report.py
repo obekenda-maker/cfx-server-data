@@ -7,7 +7,9 @@ T = ROOT / "tests"
 steps = [
     ("Lua/JS-syntaxis", "syntax_check.py"), ("Statische analyse (luacheck)", "check_lint.py"),
     ("Manifesten + startvolgorde", "check_manifests.py"), ("Kruisverwijzingen (exports/events/callbacks)", "check_crossrefs.py"),
-    ("Tekstsleutels (NL)", "check_locale.py"), ("Geheimen-scan", "check_secrets.py"), ("SQL-import (2×, MariaDB)", "test_sql.py"),
+    ("Tekstsleutels (NL)", "check_locale.py"), ("Geheimen-scan", "check_secrets.py"),
+    ("Configbestanden (server.cfg, secrets, waarden)", "check_config.py"), ("Jobcatalogus (config ↔ SQL ↔ teksten)", "check_jobs.py"), ("Zone-lint (RP-bescherming)", "check_zones.py"),
+    ("Economie-beleid", "check_economy.py"), ("SQL-import (2×, MariaDB)", "test_sql.py"), ("SQL-statements uit de code (PREPARE)", "test_sql_statements.py"),
     ("Lua-servertests", "run_tests.py"), ("Herstart-persistentie", "test_restart.py"), ("NUI in Chromium", "test_nui.py"),
 ]
 rows, detail, ok_all = [], [], True

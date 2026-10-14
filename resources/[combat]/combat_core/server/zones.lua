@@ -88,8 +88,28 @@ function Combat.normalizeZone(def, temporary)
     return zone
 end
 
+--- Geeft de SafeZone waar `point` in ligt (of nil)
+function Combat.safeZoneAt(point)
+    for _, s in ipairs(CombatCfg.SafeZones or {}) do
+        if CombatUtil.dist(point, s.coords) <= s.radius then return s end
+    end
+    return nil
+end
+
+--- Geeft de SafeZone die de gegeven zone overlapt (of nil)
+function Combat.safeZoneOverlap(zone)
+    for _, s in ipairs(CombatCfg.SafeZones or {}) do
+        if CombatUtil.dist(zone.coords, s.coords) < zone.radius + s.radius then return s end
+    end
+    return nil
+end
+
 function Combat.registerZone(def, temporary)
     local zone = Combat.normalizeZone(def, temporary)
+    local overlap = Combat.safeZoneOverlap(zone)
+    if overlap then
+        error(('zone %s overlapt beschermd roleplaygebied "%s"'):format(zone.id, overlap.label))
+    end
     if not Combat.Zones[zone.id] then
         Combat.ZoneOrder[#Combat.ZoneOrder + 1] = zone.id
     end

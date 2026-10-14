@@ -43,8 +43,8 @@ GangCfg.BankWithdrawMaxPerAction = 20000
 ---------------------------------------------------------------------------
 GangCfg.Territories = {
     { id = 'grove',  label = 'Grove Street',  coords = vec3(112.0, -1943.0, 20.8),  radius = 70.0 },
-    { id = 'davis',  label = 'Davis',         coords = vec3(-14.0, -1442.0, 31.1),  radius = 70.0 },
-    { id = 'mirror', label = 'Mirror Park',   coords = vec3(1163.0, -323.0, 69.2),  radius = 80.0 },
+    { id = 'davis',  label = 'Davis',         coords = vec3(-60.0, -1520.0, 31.0),  radius = 70.0 },  -- controleer in-game (zelfde z-hoogte als grond)
+    { id = 'mirror', label = 'Mirror Park',   coords = vec3(1150.0, -480.0, 66.0),  radius = 80.0 },  -- LET OP: controleer in-game; moet buiten SafeZones blijven
 }
 GangCfg.Territory = {
     claimCost      = 25000,
