@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS `server_log_entries` (
   KEY `idx_channel_time` (`channel`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ---- Regels-akkoord en onboarding (server_welcome) ------------------
+-- Per Rockstar-license (niet per personage): welke regelversie is geaccepteerd en is de onboarding doorlopen.
+CREATE TABLE IF NOT EXISTS `server_rules_accepted` (
+  `license`     VARCHAR(64)  NOT NULL,
+  `version`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `name`        VARCHAR(64)  NOT NULL DEFAULT '',
+  `accepted_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `onboarded`   TINYINT(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (`license`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ---- Admin: bans & waarschuwingen -----------------------------------
 CREATE TABLE IF NOT EXISTS `admin_bans` (
   `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,

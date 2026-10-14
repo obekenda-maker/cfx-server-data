@@ -23,7 +23,7 @@ FILES = {
     "InterCfg": ["[roleplay]/rp_interactions/config.lua"],
     "GangCfg": ["[roleplay]/rp_gangs/config.lua"],
 }
-OPTIONAL = {"WelcomeCfg": ["[server]/server_welcome/config.lua"]}
+OPTIONAL = {"WelcomeCfg": ["[server]/server_welcome/config.lua", "[server]/server_welcome/rules_nl.lua"]}
 
 
 def load():

@@ -482,5 +482,6 @@ function Mock.loadAll()
     res('rp_interactions', '[roleplay]', { 'config', 'server/main' })
     res('rp_gangs', '[roleplay]', { 'config', 'server/main', 'server/territory', 'server/market' })
     res('admin_tools', '[admin]', { 'server/main' })
+    res('server_welcome', '[server]', { 'config', 'rules_nl', 'server/main' })
     Mock.stepThreads()
 end

@@ -116,6 +116,30 @@ for g, v in gr.items():
     for p in v["perms"]:
         if p not in {"invite", "kick", "promote", "bank_deposit", "bank_withdraw", "war", "blackmarket", "disband"}: err(f"gang-grade {g}: onbekend recht {p}")
 
+# ---------- server_welcome ----------
+W = cfg(L, "WelcomeCfg"); rules = cfg(L, "WelcomeRules")
+loc = SV = S["Locale"]
+for st in W["Steps"]:
+    for suffix in ("_title", "_text"):
+        if f"welcome.step_{st['key']}{suffix}" not in loc: err(f"onboarding-stap '{st['key']}': tekst welcome.step_{st['key']}{suffix} ontbreekt")
+    if st.get("waypoint") and st["waypoint"] not in W["Waypoints"]: err(f"onboarding-stap {st['key']}: onbekende waypoint {st['waypoint']}")
+for g in W["Help"]:
+    if g["group"] not in loc: err(f"help-groep {g['group']} mist tekst")
+    for _, k in g["items"]:
+        if k not in loc: err(f"help-tekst {k} ontbreekt")
+for k in ("rules_title", "onboarding_title", "helppage_title", "accept_check", "accept_btn", "decline_btn", "close", "prev", "next", "finish", "skip", "step_of", "waypoint_btn", "timeout_note", "chat_fallback", "tab_welcome", "tab_rules", "tab_help"):
+    if f"welcome.{k}" not in loc: err(f"NUI-tekst welcome.{k} ontbreekt")
+near = lambda a, b: all(abs(a[c] - b[c]) < 1.0 for c in "xyz")
+if not near(W["Waypoints"]["jobcenter"]["coords"], J["JobCenter"]["coords"]): err("welcome-waypoint 'jobcenter' ≠ JobsCfg.JobCenter.coords")
+if not near(W["Waypoints"]["dealer"]["coords"], G["Shop"]["coords"]): err("welcome-waypoint 'dealer' ≠ GarageCfg.Shop.coords")
+if not near(W["Waypoints"]["garage"]["coords"], G["Garages"][0]["coords"]): err("welcome-waypoint 'garage' ≠ eerste garage")
+if not rules or any(not s["items"] for s in rules): err("WelcomeRules: lege sectie of geen regels")
+if W["Rules"]["acceptTimeoutSeconds"] < 120: err("acceptTimeoutSeconds < 120: te kort voor personage aanmaken")
+loading = re.sub(r"<[^>]+>", "", (ROOT / "resources/[server]/server_welcome/web/loading.html").read_text(encoding="utf-8"))
+if re.sub(r"\s+", " ", S["Server"]["name"]).lower() not in re.sub(r"\s+", " ", loading).lower():
+    err(f"loadscreen (server_welcome/web/loading.html) bevat de servernaam '{S['Server']['name']}' niet: pas de tekst aan (statische HTML)")
+if W["Rules"]["version"] < 1: err("WelcomeCfg.Rules.version moet ≥ 1 zijn")
+
 for e in errors: print("FOUT:", e)
 print(f"config-lint: {len(ensures)} ensure-regels, {len(errors)} fout(en)")
 sys.exit(1 if errors else 0)

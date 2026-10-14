@@ -71,6 +71,7 @@ ensure rp_shops
 ensure rp_interactions
 ensure rp_gangs
 ensure admin_tools
+ensure server_welcome
 ensure server_hud
 
 # ---- Beheerders ------------------------------------------------------

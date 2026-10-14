@@ -7,7 +7,8 @@ steps = [("syntax", "syntax_check.py"), ("lint (luacheck)", "check_lint.py"), ("
          ("kruisverwijzingen (exports/events/callbacks)", "check_crossrefs.py"), ("teksten", "check_locale.py"),
          ("geheimen", "check_secrets.py"), ("configbestanden", "check_config.py"), ("jobcatalogus", "check_jobs.py"), ("zones (RP-bescherming)", "check_zones.py"),
          ("economie-beleid", "check_economy.py"), ("sql", "test_sql.py"), ("sql-statements", "test_sql_statements.py"), ("lua-tests", "run_tests.py"),
-         ("herstart-persistentie", "test_restart.py"), ("NUI (Chromium)", "test_nui.py")]
+         ("herstart-persistentie", "test_restart.py"), ("NUI HUD (Chromium)", "test_nui.py"), ("NUI welkom (Chromium)", "test_nui_welcome.py"),
+         ("welkomstdocumenten (drift)", "gen_welcome_check.py")]
 failed = []
 for name, script in steps:
     print(f"\n=== {name} ===")

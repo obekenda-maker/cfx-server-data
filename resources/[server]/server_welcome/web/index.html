@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Welkom</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="overlay" class="hidden">
+  <main id="card" role="dialog" aria-modal="true" aria-labelledby="title">
+    <header>
+      <div>
+        <h1 id="title">Welkom</h1>
+        <p id="subtitle"></p>
+      </div>
+      <nav id="tabs"></nav>
+    </header>
+
+    <section id="view-rules" class="view hidden">
+      <div id="rules-body" class="scroll"></div>
+      <footer id="rules-footer">
+        <label id="accept-label"><input type="checkbox" id="accept-check"> <span id="accept-text"></span></label>
+        <div class="buttons">
+          <button id="btn-decline" class="btn danger"></button>
+          <button id="btn-accept" class="btn primary" disabled></button>
+          <button id="btn-rules-close" class="btn"></button>
+        </div>
+        <p id="timeout-note" class="note"></p>
+      </footer>
+    </section>
+
+    <section id="view-onboarding" class="view hidden">
+      <div class="step-head"><span id="step-count"></span><div id="dots"></div></div>
+      <h2 id="step-title"></h2>
+      <div id="step-text" class="scroll"></div>
+      <footer>
+        <button id="btn-waypoint" class="btn hidden"></button>
+        <div class="buttons">
+          <button id="btn-prev" class="btn"></button>
+          <button id="btn-next" class="btn primary"></button>
+          <button id="btn-finish" class="btn primary hidden"></button>
+          <button id="btn-skip" class="btn"></button>
+        </div>
+      </footer>
+    </section>
+
+    <section id="view-help" class="view hidden">
+      <div id="help-body" class="scroll"></div>
+      <footer><div class="buttons"><button id="btn-help-close" class="btn"></button></div></footer>
+    </section>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

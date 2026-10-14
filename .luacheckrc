@@ -9,10 +9,11 @@ allow_defined_top = true
 exclude_files = { "**/fxmanifest.lua" }
 
 -- globals die onze resources zelf definiëren (gedeeld tussen bestanden van één resource)
-globals = { "ServerCfg", "Combat", "CombatCfg", "CombatUtil", "CombatClient", "StatsCfg", "Jobs", "JobsCfg", "RPJ", "GarageCfg", "ShopCfg", "InterCfg", "Gang", "GangCfg", "Interact" }
+globals = { "ServerCfg", "Combat", "CombatCfg", "CombatUtil", "CombatClient", "StatsCfg", "Jobs", "JobsCfg", "RPJ", "GarageCfg", "ShopCfg", "InterCfg", "Gang", "GangCfg", "Interact", "WelcomeCfg", "WelcomeRules" }
 
 -- FiveM-omgeving
 read_globals = {
+    "SetNuiFocus", "IsNuiFocused", "IsScreenFadedIn",
     "lib", "ESX", "MySQL", "exports", "json", "source", "Citizen", "Player", "LocalPlayer",
     "AddBlipForCoord", "AddBlipForRadius", "AddEventHandler", "AddTextComponentSubstringPlayerName", "AttachEntityToEntity", "BeginTextCommandDisplayText",
     "BeginTextCommandSetBlipName", "CancelEvent", "ClearGpsMultiRoute", "ClearPedBloodDamage", "ClearPedTasks", "ClearPedTasksImmediately",

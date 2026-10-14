@@ -7,8 +7,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 locale = (ROOT / "resources/[server]/server_config/locale_nl.lua").read_text(encoding="utf-8")
 defined = set(re.findall(r"\['([a-z_]+\.[a-z0-9_]+)'\]\s*=", locale))
 
-NS = r"(?:combat|hud|admin|jobs|garage|shop|inter|gang|common|stats)"
-pattern = re.compile(r"['\"](" + NS + r"\.[a-z0-9_]+)['\"]")
+NS = r"(?:combat|hud|admin|jobs|garage|shop|inter|gang|common|stats|welcome)"
+pattern = re.compile(r"['\"](" + NS + r"\.[a-z0-9_]*[a-z0-9])['\"]")
 used = {}
 for group in ["[admin]", "[combat]", "[roleplay]", "[server]", "[ui]"]:
     for path in (ROOT / "resources" / group).rglob("*.lua"):

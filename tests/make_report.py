@@ -10,7 +10,7 @@ steps = [
     ("Tekstsleutels (NL)", "check_locale.py"), ("Geheimen-scan", "check_secrets.py"),
     ("Configbestanden (server.cfg, secrets, waarden)", "check_config.py"), ("Jobcatalogus (config ↔ SQL ↔ teksten)", "check_jobs.py"), ("Zone-lint (RP-bescherming)", "check_zones.py"),
     ("Economie-beleid", "check_economy.py"), ("SQL-import (2×, MariaDB)", "test_sql.py"), ("SQL-statements uit de code (PREPARE)", "test_sql_statements.py"),
-    ("Lua-servertests", "run_tests.py"), ("Herstart-persistentie", "test_restart.py"), ("NUI in Chromium", "test_nui.py"),
+    ("Lua-servertests", "run_tests.py"), ("Herstart-persistentie", "test_restart.py"), ("NUI HUD in Chromium", "test_nui.py"), ("NUI welkom in Chromium", "test_nui_welcome.py"), ("Welkomstdocumenten = bron", "gen_welcome_check.py"),
 ]
 rows, detail, ok_all = [], [], True
 for name, script in steps:
@@ -23,7 +23,7 @@ for name, script in steps:
         parts = re.findall(r"\[([^\]]+)\] (\d+) geslaagd, (\d+) mislukt", out)
         summary = ", ".join(f"{n}: {p}/{int(p)+int(f)}" for n, p, f in parts)
         total = sum(int(p) for _, p, _ in parts); summary = f"{total} checks ({summary})"
-    elif script == "test_nui.py":
+    elif script in ("test_nui.py", "test_nui_welcome.py"):
         m = re.search(r"(\d+) geslaagd, (\d+) mislukt", out); summary = f"{m.group(1)} checks" if m else out.strip()[:80]
     else:
         summary = [l for l in out.strip().splitlines() if l.strip()][-1] if out.strip() else ""
