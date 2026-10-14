@@ -14,6 +14,8 @@ sv_hostname "Nederland Combat RP | ESX | PvP + Roleplay"
 sets sv_projectName "Nederland Combat RP"
 sets sv_projectDesc "Nederlandse ESX Legacy server: roleplay en PvP combat zones"
 sets locale "nl-NL"
+# ESX-taal (Nederlands) – moet "setr" zijn: ook de client leest dit. Geldt voor es_extended en alle esx_*-resources.
+setr esx:locale "nl"
 sets tags "esx, roleplay, pvp, nederlands"
 # load_server_icon myLogo.png    # eigen 96x96 PNG naast server.cfg
 sv_maxclients 48
@@ -52,6 +54,7 @@ ensure esx_identity
 ensure esx_addonaccount
 ensure esx_addoninventory
 ensure esx_datastore
+ensure cron
 ensure esx_society
 ensure esx_status
 ensure esx_basicneeds

@@ -1,6 +1,6 @@
 # Testresultaten
 
-*Gegenereerd door `python3 tests/make_report.py` op 14-10-2026 12:05 – dit zijn de werkelijke uitkomsten van die run.*
+*Gegenereerd door `python3 tests/make_report.py` op 14-10-2026 18:49 – dit zijn de werkelijke uitkomsten van die run.*
 
 Omgeving: Lua 5.4 (lupa), luacheck 1.1.2, MariaDB 10.11.14, Chromium (Playwright), Node 22. **Geen FXServer/GTA.**
 
@@ -13,9 +13,9 @@ Omgeving: Lua 5.4 (lupa), luacheck 1.1.2, MariaDB 10.11.14, Chromium (Playwright
 | Manifesten + startvolgorde | ✅ geslaagd | 12 resources gecontroleerd, 0 fout(en) |
 | Kruisverwijzingen (exports/events/callbacks) | ✅ geslaagd | 65 bestanden, 0 fout(en) |
 | Tekstsleutels (NL) | ✅ geslaagd | 501 sleutels gedefinieerd, 426 in gebruik, 0 ontbreken, 75 ongebruikt |
-| Geheimen-scan | ✅ geslaagd | 263 bestanden gecontroleerd op geheimen, 0 fout(en) |
+| Geheimen-scan | ✅ geslaagd | 268 bestanden gecontroleerd op geheimen, 0 fout(en) |
 | Net events/callbacks: spam-bescherming | ✅ geslaagd | 4 net events en 53 server-callbacks geaudit, 0 fout(en) |
-| Configbestanden (server.cfg, secrets, waarden) | ✅ geslaagd | config-lint: 34 ensure-regels, 0 fout(en) |
+| Configbestanden (server.cfg, secrets, waarden) | ✅ geslaagd | config-lint: 35 ensure-regels, 0 fout(en) |
 | Jobcatalogus (config ↔ SQL ↔ teksten) | ✅ geslaagd | jobcatalogus: 6 jobs, 16 grades, 0 fout(en) |
 | Zone-lint (RP-bescherming) | ✅ geslaagd | 23 RP-punten, 19 SafeZones, 3 PvP-zones, 3 territoria: 0 fout(en) |
 | Economie-beleid | ✅ geslaagd | economie: 0 beleidsfout(en); rapport docs/ECONOMIE.md |

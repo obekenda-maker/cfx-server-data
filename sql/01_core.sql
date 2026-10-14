@@ -131,6 +131,25 @@ CREATE TABLE IF NOT EXISTS `rp_cooldowns` (
   PRIMARY KEY (`identifier`, `action`, `day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ---- Jobs: kolom 'whitelisted' ---------------------------------------
+-- ESX 1.13.x heeft in `jobs` alleen name + label. rp_jobs (catalogus/jobcentrum) gebruikt deze kolom;
+-- ESX zelf negeert hem. Veilig opnieuw uit te voeren (MariaDB: IF NOT EXISTS).
+ALTER TABLE `jobs` ADD COLUMN IF NOT EXISTS `whitelisted` TINYINT(1) NOT NULL DEFAULT 0;
+
+-- ---- Voertuigen: tabel owned_vehicles ------------------------------
+-- In ESX 1.13.x staat deze tabel alleen nog in [SQL]/legacy.sql (niet in es_extended.sql); daarom hier aangemaakt.
+CREATE TABLE IF NOT EXISTS `owned_vehicles` (
+  `owner`   VARCHAR(60) DEFAULT NULL,
+  `plate`   VARCHAR(12) NOT NULL,
+  `vehicle` LONGTEXT DEFAULT NULL,
+  `type`    VARCHAR(20) NOT NULL DEFAULT 'car',
+  `job`     VARCHAR(20) DEFAULT NULL,
+  `stored`  TINYINT(1) NOT NULL DEFAULT 0,
+  `parking` VARCHAR(60) DEFAULT NULL,
+  `pound`   VARCHAR(60) DEFAULT NULL,
+  PRIMARY KEY (`plate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ---- Voertuigen: kolom 'stored' ------------------------------------
 -- owned_vehicles komt uit es_extended (legacy.sql). In recente ESX-versies bestaat
 -- `stored` al. Op MariaDB kun je dit veilig draaien; op MySQL geeft het een

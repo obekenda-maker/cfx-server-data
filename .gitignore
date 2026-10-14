@@ -14,3 +14,10 @@ secrets.cfg
 *.sql.gz
 *.sql.gz.sha256
 *.tar.gz.gpg
+
+# Externe afhankelijkheden (worden door scripts/install-deps.sh opgehaald; zitten wel in de release-zip)
+/resources/\[core\]/*
+!/resources/\[core\]/README.md
+/resources/\[esx\]/*
+!/resources/\[esx\]/README.md
+/sql/ALL_IN_ONE.sql

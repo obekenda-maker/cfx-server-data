@@ -20,9 +20,18 @@ ERRORS=0; FILES=0
 run() { # bestand
   echo ">> $1"
   FILES=$((FILES+1))
-  local out
-  if ! out="$(sql "$DB_NAME" < "$1" 2>&1)"; then
-    if printf '%s' "$out" | grep -qiE "already exists|Duplicate (column|key)|multiple primary key"; then
+  local out rc errs
+  # es_extended.sql begint met CREATE DATABASE `es_extended` + USE: dat zou de tabellen in een andere database zetten.
+  # Alles tot en met de USE-regel wordt weggelaten, zodat ze in DB_NAME terechtkomen.
+  if [ "$(basename "$1")" = "es_extended.sql" ] && grep -q '^USE ' "$1"; then
+    out="$(sed '1,/^USE /d' "$1" | sql "$DB_NAME" 2>&1)"; rc=$?
+  else
+    out="$(sql "$DB_NAME" < "$1" 2>&1)"; rc=$?
+  fi
+  if [ "$rc" -ne 0 ]; then
+    # Alleen de ERROR-regels beoordelen: de echo van de SQL zelf (bv. "ON DUPLICATE KEY UPDATE") telt niet mee.
+    errs="$(printf '%s\n' "$out" | grep -E '^ERROR')"
+    if [ -n "$errs" ] && ! printf '%s\n' "$errs" | grep -qvE "already exists|Duplicate (column name|key name|entry)|Multiple primary key"; then
       echo "   (melding 'bestaat al' – normaal bij een herhaalde import)"
     else
       echo "   FOUT: $out" >&2

@@ -170,3 +170,6 @@ python3 tests/check_jobs.py        # jobcatalogus ↔ SQL ↔ teksten
 | Webhooks komen niet aan | convar leeg/typfout; `set` (niet `setr`); console toont `HTTP 4xx` |
 | Niemand kan kills scoren / zones doen niets | OneSync niet aan (`set onesync on`) |
 | Spelers hangen op het akkoordscherm | `/akkoord` in de chat (noodoplossing), controleer F8-console op NUI-fouten |
+
+---
+**Gehost paneel zonder shell (Pelican/Pterodactyl)?** Volg `docs/START_HIER_PELICAN.md`; maak het samengevoegde SQL-bestand met `scripts/build-all-sql.sh`.

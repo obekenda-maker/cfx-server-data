@@ -21,7 +21,7 @@ ensures = [l.split()[1] for l in active if l.startswith("ensure ")]
 FORBIDDEN = {"runcode", "esx_ambulancejob", "esx_policejob", "esx_mechanicjob", "esx_vehicleshop", "esx_shops", "esx_weaponshop",
              "esx_advancedgarage", "ox_inventory", "hardcap", "money-fountain", "money", "ped-money-drops", "basic-gamemode"}
 for f in FORBIDDEN & set(ensures): err(f"'{f}' mag niet in server.cfg.example (conflict/onveilig)")
-EXTERNAL = {"oxmysql", "ox_lib", "es_extended", "esx_menu_default", "esx_menu_dialog", "esx_menu_list", "skinchanger", "esx_skin",
+EXTERNAL = {"cron", "oxmysql", "ox_lib", "es_extended", "esx_menu_default", "esx_menu_dialog", "esx_menu_list", "skinchanger", "esx_skin",
             "esx_identity", "esx_addonaccount", "esx_addoninventory", "esx_datastore", "esx_society", "esx_status", "esx_basicneeds", "esx_license"}
 present = {p.parent.name for p in (ROOT / "resources").rglob("fxmanifest.lua")}
 for e in ensures:
@@ -37,10 +37,10 @@ sec = (ROOT / "secrets.cfg.example").read_text()
 L = load(); S = cfg(L, "ServerCfg")
 needed = {"sv_licenseKey", "mysql_connection_string"} | set(S["Webhooks"].values())
 for n in needed:
-    if not re.search(rf"^\s*(set\s+)?{n}\b", sec, re.M): err(f"secrets.cfg.example mist {n}")
+    if not re.search(rf"^\s*#?\s*(set\s+)?{n}\b", sec, re.M): err(f"secrets.cfg.example mist {n}")
 used = set()
 for f in (ROOT / "resources").rglob("*.lua"):
-    if any(g in str(f) for g in ("[system]", "[gameplay]", "[managers]", "[gamemodes]", "[test]")): continue
+    if any(g in str(f) for g in ("[system]", "[gameplay]", "[managers]", "[gamemodes]", "[test]", "[core]", "[esx]")): continue  # externe resources zijn niet van ons
     used |= set(re.findall(r"GetConvar(?:Int)?\(\s*'([^']+)'", f.read_text(encoding="utf-8")))
 for u in used:
     if u not in needed and u not in S["Webhooks"].values(): err(f"code leest convar '{u}' die niet in secrets.cfg.example staat")

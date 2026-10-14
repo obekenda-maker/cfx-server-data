@@ -11,9 +11,11 @@
 | FXServer (artifact) | game-server | recente *recommended* build, `lua54`, **OneSync aan** (`set onesync on`) | ❌ niet beschikbaar |
 | MariaDB | database | ≥ 10.3 (aanbevolen 10.6+; `ADD COLUMN/INDEX IF NOT EXISTS`) | ✅ **10.11.14** (schema + alle queries) |
 | MySQL | alternatief | 8.x; twee `ALTER`-regels onderaan `sql/01_core.sql` geven een meldbare "bestaat al"-fout | ❌ |
-| oxmysql | `MySQL.*` + `@oxmysql/lib/MySQL.lua` | 2.x of nieuwer | ❌ (gemockt; echte SQL wel via MariaDB) |
-| ox_lib | callbacks (beide richtingen), context-menu's, input/alert-dialogen, TextUI, progressbar, `lib.zones`, `lib.points`, `lib.getClosestPlayer`, notify | 3.x of nieuwer | ❌ (gemockt) |
-| es_extended (ESX Legacy) | framework: spelers, geld, jobs, loadout, inventaris, items | Legacy ≥ 1.9 (default inventaris) | ❌ (gemockt) |
+| oxmysql | `MySQL.*` + `@oxmysql/lib/MySQL.lua` | **2.14.1** (gepind in install-deps.sh) | ❌ (gemockt; echte SQL wel via MariaDB) |
+| ox_lib | callbacks (beide richtingen), context-menu's, input/alert-dialogen, TextUI, progressbar, `lib.zones`, `lib.points`, `lib.getClosestPlayer`, notify | **3.39.0** (gepind) | ❌ (gemockt; aanroepen nog niet tegen de echte bron vergeleken) |
+| es_extended (ESX Legacy) | framework: spelers, geld, jobs, loadout, inventaris, items | **1.13.5** (gepind; addons: esx_addons **v1.14.0**) | ✅ echte SQL geïmporteerd in MariaDB en alle xPlayer-/ESX-aanroepen vergeleken met de echte broncode (`tests/check_esx_api.py`, `tests/test_real_schema.py`); gedrag in-game ❌ |
+
+> **Let op – versies bij elkaar houden:** `esx_addons` vanaf `v1.15` en `master` vereisen `esx_lib` en passen niet bij ESX 1.13.x. `scripts/install-deps.sh` pint daarom een werkende combinatie (`ESX_REF=1.13.5`, `ADDONS_REF=v1.14.0`).
 
 ## ESX-resources (zie `server.cfg.example`, in deze volgorde)
 
