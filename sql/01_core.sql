@@ -123,5 +123,8 @@ CREATE TABLE IF NOT EXISTS `rp_cooldowns` (
 -- ---- Voertuigen: kolom 'stored' ------------------------------------
 -- owned_vehicles komt uit es_extended (legacy.sql). In recente ESX-versies bestaat
 -- `stored` al. Op MariaDB kun je dit veilig draaien; op MySQL geeft het een
--- foutmelding als de kolom al bestaat (negeer die dan).
+-- foutmelding als de kolom/index al bestaat (negeer die dan).
 ALTER TABLE `owned_vehicles` ADD COLUMN IF NOT EXISTS `stored` TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Index op eigenaar: garage-/depotlijsten filteren op owner (anders een volledige tabelscan per menu-opening)
+ALTER TABLE `owned_vehicles` ADD INDEX IF NOT EXISTS `idx_owner` (`owner`);

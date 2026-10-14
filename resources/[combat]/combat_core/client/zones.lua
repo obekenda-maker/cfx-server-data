@@ -134,9 +134,9 @@ local function eject(z)
     end
     DoScreenFadeOut(200)
     Wait(250)
-    C.teleport(target)
+    local ok = pcall(C.teleport, target)
     DoScreenFadeIn(250)
-    C.notify('inform', 'combat.ejected', z.label)
+    if ok then C.notify('inform', 'combat.ejected', z.label) end
 end
 
 function C.startBystander(id)

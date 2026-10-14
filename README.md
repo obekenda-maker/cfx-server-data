@@ -4,7 +4,7 @@ Een complete Nederlandstalige FiveM-server die **roleplay** en **vrijwillige PvP
 Gebouwd op [`cfx-server-data`](docs/CFX_SERVER_DATA_ORIGINAL.md) + ESX Legacy + oxmysql + ox_lib.
 
 > **Status in het kort:** alle scripts, SQL, configuratie en documentatie staan erin. De server-logica is getest
-> (zie [Tests](#tests)) met gemockte FiveM/ESX/ox_lib-API's en een **echte MariaDB**. Er is **geen in-game test**
+> (zie [Tests](#tests)) met gemockte FiveM/ESX/ox_lib-API's, een **echte MariaDB** en een echte Chromium voor de HUD. Er is **geen in-game test**
 > gedaan (er draaide hier geen GTA/FXServer): doorloop daarom eerst [`docs/TESTEN.md`](docs/TESTEN.md).
 
 ## Wat zit erin
@@ -27,7 +27,7 @@ Externe afhankelijkheden (worden **niet** meegeleverd, `scripts/install-deps.sh`
 `es_extended` + `esx_menu_*`, `esx_skin`, `skinchanger`, `esx_identity`, `esx_addonaccount`, `esx_addoninventory`,
 `esx_datastore`, `esx_society`, `esx_status`, `esx_basicneeds`, `esx_license`.
 
-Het ontwerp, de afwegingen en de beperkingen staan in [`docs/BOUWPLAN.md`](docs/BOUWPLAN.md).
+Het ontwerp staat in [`docs/BOUWPLAN.md`](docs/BOUWPLAN.md), dependencies/versies in [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md), resterende punten in [`docs/RESTERENDE_PUNTEN.md`](docs/RESTERENDE_PUNTEN.md).
 
 ## Snel starten
 
@@ -74,26 +74,27 @@ Meer detail: [`docs/CONFIGURATIE.md`](docs/CONFIGURATIE.md).
 ## Tests
 
 ```bash
-pip install lupa pymysql          # Lua 5.4 in Python + MariaDB-client
-# start een lokale MariaDB (socket /run/mysqld/mysqld.sock, user root)
-python3 tests/run_all.py          # syntax, manifesten, teksten, SQL en alle Lua-tests
+pip install lupa pymysql                 # Lua 5.4 in Python + MariaDB-client
+apt install lua-check mariadb-server     # luacheck + lokale database (socket /run/mysqld/mysqld.sock, user root)
+python3 tests/run_all.py                 # alle controles
+python3 tests/make_report.py             # idem, en schrijft docs/TESTRESULTATEN.md
 ```
+
+Laatste run: **alles geslaagd** – 504 Lua-servertests, 28 herstart-checks, 25 NUI-checks, luacheck 0 waarschuwingen,
+SQL 2× in MariaDB 10.11. Volledig overzicht (wat echt getest is en wat alleen via code gecontroleerd): [`docs/TESTRESULTATEN.md`](docs/TESTRESULTATEN.md).
 
 | Controle | Wat |
 |---|---|
-| `tests/syntax_check.py` | Alle Lua-bestanden (Lua 5.4) + JS (`node --check`) |
-| `tests/check_manifests.py` | Alle `fxmanifest.lua`: bestanden, `@resource/…`-verwijzingen, dependencies, startvolgorde in `server.cfg.example` |
-| `tests/check_locale.py` | Elke gebruikte tekstsleutel bestaat in `locale_nl.lua` |
-| `tests/test_sql.py` | `sql/01–03` importeren (2×, idempotent) in echte MariaDB |
-| `tests/test_combat.lua` | Zones, join-regels, kills, beloningscaps, anti-farm, respawn-limiet, RP-loadout-herstel, tijdelijke zones |
-| `tests/test_jobs.lua` | Dienst, politie, dood/revive/ziekenhuis, bezorging (anti-teleport), taxi, monteur |
-| `tests/test_garages_shops.lua` | Voertuigen (atomisch uitparkeren, geen model-swap), winkels, wapenlicentie, geven, /me |
-| `tests/test_gangs.lua` | Gang-regels, kas, territoria, **volledig ganggevecht via combat_core**, zwarte markt, hehler |
-| `tests/test_admin.lua` | Rechten, bans (DB + login-controle), warnings, auto-ban |
-| `tests/test_logs.lua` | Webhook-batching, 429, DB-audit |
+| `check_lint.py` | luacheck over alle eigen Lua (typfouten, onbekende variabelen) |
+| `check_manifests.py` | fxmanifest: bestanden, `@resource/…`, dependencies, startvolgorde in `server.cfg.example` |
+| `check_crossrefs.py` | elke `exports.x:Fn`, `lib.callback.await` en eigen event heeft een tegenhanger |
+| `check_locale.py` / `check_secrets.py` | tekstsleutels aanwezig / geen geheimen in git |
+| `test_sql.py` | `sql/01–03` 2× in echte MariaDB |
+| `run_tests.py` | `test_combat`, `test_combat_extra`, `test_jobs`, `test_garages_shops`, `test_gangs`, `test_admin`, `test_logs` (echte DB) |
+| `test_restart.py` | twee runtimes op één database = serverrestart |
+| `test_nui.py` | echte HUD in Chromium (XSS, extreme waarden, fouten) |
 
-**Niet** door deze tests gedekt: alle clientcode (NUI, zones, death-camera, spawn, menu's), echte ESX/ox_lib-versies en
-netwerkgedrag. Dat is wat `docs/TESTEN.md` dekt.
+**Niet** gedekt: alle clientcode, echte ESX/ox_lib-versies, netwerkgedrag → [`docs/RESTERENDE_PUNTEN.md`](docs/RESTERENDE_PUNTEN.md) en `docs/TESTEN.md`.
 
 ## Licentie en bronnen
 

@@ -97,7 +97,8 @@ function Gang.onReady()
     for id in pairs(cfgById) do T[id] = T[id] or { gang_id = nil, lockedUntil = 0 } end
 end
 
-lib.callback.register('rp_gangs:getTerritories', function()
+lib.callback.register('rp_gangs:getTerritories', function(source)
+    if not Gang.throttle(source, 'terr', 500) then return {} end
     return publicList()
 end)
 
@@ -153,6 +154,7 @@ local function endWar(war, reason)
         end
     end
     wars[war.territory] = nil
+    killLast = {}   -- paren-timers van deze oorlog niet bewaren
 
     if war.state ~= 'active' then
         -- afgebroken voor de start: uitdager krijgt de kosten terug

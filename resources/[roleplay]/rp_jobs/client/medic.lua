@@ -38,15 +38,18 @@ local function resurrect(x, y, z, h, health)
     local ped = PlayerPedId()
     DoScreenFadeOut(250)
     Wait(300)
-    NetworkResurrectLocalPlayer(x, y, z, h or 0.0, true, false)
-    ped = PlayerPedId()
-    ClearPedTasksImmediately(ped)
-    ClearPedBloodDamage(ped)
-    SetEntityHealth(ped, health or 200)
-    LocalPlayer.state:set('isDown', false, true)
-    TriggerEvent('esx:onPlayerSpawn')
+    local ok, err = pcall(function()
+        NetworkResurrectLocalPlayer(x, y, z, h or 0.0, true, false)
+        ped = PlayerPedId()
+        ClearPedTasksImmediately(ped)
+        ClearPedBloodDamage(ped)
+        SetEntityHealth(ped, health or 200)
+        LocalPlayer.state:set('isDown', false, true)
+        TriggerEvent('esx:onPlayerSpawn')
+    end)
     Wait(200)
-    DoScreenFadeIn(300)
+    DoScreenFadeIn(300)   -- altijd, ook bij een fout
+    if not ok then print('^1[rp_jobs]^7 Fout bij herstellen: ' .. tostring(err)) end
 end
 
 local function runDeath()
@@ -148,11 +151,10 @@ end
 
 CreateThread(function()
     local shown = false
-    local busy = false
     while true do
         Wait(400)
         local target
-        if ESX.IsPlayerLoaded() and RPJ.jobName() == D.medicJob and not busy and not IsEntityDead(PlayerPedId()) then
+        if ESX.IsPlayerLoaded() and RPJ.jobName() == D.medicJob and not IsEntityDead(PlayerPedId()) then
             target = findDownedPlayer()
         end
         if target and not shown then
@@ -163,11 +165,11 @@ CreateThread(function()
             shown = false
         end
         if target then
-            -- korte, snelle poll voor de toets
-            for _ = 1, 8 do
-                Wait(50)
+            -- IsControlJustReleased is maar één frame waar: per frame controleren (alleen terwijl er een patiënt is)
+            local untilT = GetGameTimer() + 400
+            while GetGameTimer() < untilT do
+                Wait(0)
                 if IsControlJustReleased(0, 38) then
-                    busy = true
                     lib.hideTextUI()
                     shown = false
                     local done = lib.progressBar({
@@ -178,7 +180,6 @@ CreateThread(function()
                         anim = { dict = 'mini@cpr@char_a@cpr_str', clip = 'cpr_pumpchest', flag = 1 },
                     })
                     if done then RPJ.result(lib.callback.await('rp_jobs:revive', false, target)) end
-                    busy = false
                     break
                 end
             end

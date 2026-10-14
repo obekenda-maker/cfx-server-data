@@ -76,6 +76,8 @@ function C.restoreRpLoadout(list)
     local ped = PlayerPedId()
     RemoveAllPedWeapons(ped, true)
     if not CombatCfg.Rules.restoreRpLoadout then return end
+    -- Zonder server-snapshot (bijv. lokale noodopruiming): val terug op de ESX-loadout
+    list = list or ESX.GetPlayerData().loadout
     for _, w in ipairs(list or {}) do
         local hash = joaat(w.name)
         GiveWeaponToPed(ped, hash, w.ammo or 0, false, false)
@@ -173,11 +175,19 @@ function C.onJoined(data)
 
     DoScreenFadeOut(250)
     Wait(300)
-    C.snapshotVitals()
-    C.teleport(data.spawn)
-    C.applyLoadout(data.loadout)
-    C.applyRules()
+    -- Een fout hieronder mag NOOIT een zwart scherm of half-toegepaste staat achterlaten.
+    local ok, err = pcall(function()
+        C.snapshotVitals()
+        C.teleport(data.spawn)
+        C.applyLoadout(data.loadout)
+        C.applyRules()
+    end)
     DoScreenFadeIn(300)
+    if not ok then
+        print('^1[combat_core]^7 Fout bij deelnemen: ' .. tostring(err))
+        C.requestLeave()
+        return
+    end
     C.startProtection(data.protection)
 
     TriggerEvent('server_hud:combat', C.state)
@@ -253,6 +263,11 @@ RegisterNetEvent('combat:left', function(reasonKey, rpLoadout)
     TriggerEvent('server_hud:protection', 0)
     C.notify('inform', reasonKey or 'combat.left')
 end)
+
+--- Noodopruiming zonder serverbericht (hergebruikt de normale combat:left-afhandeling)
+function C.localCleanup()
+    TriggerEvent('combat:left', 'combat.left_forced', nil)
+end
 
 RegisterNetEvent('combat:state', function(payload)
     C.state = payload or { active = false }

@@ -4,9 +4,22 @@
 ]]
 
 local BM, Fence = GangCfg.BlackMarket, GangCfg.Fence
+local inCombat = ServerCfg.InCombat
+local pay = ServerCfg.Pay
 local activeActivity = {}    -- [source] = { id, startedAt }
 local activityCooldown = {}  -- ["identifier:id"] = os.time() waarvoor weer mag
 local purchaseAt = {}        -- [source] = GetGameTimer()
+
+--- Alle daglimieten van een speler voor vandaag in één query: { [action] = {count, amount} }
+local function dailyAll(identifier)
+    local ok, rows = pcall(function()
+        return MySQL.query.await('SELECT `action`, `count`, `amount` FROM rp_cooldowns WHERE identifier = ? AND `day` = ?',
+            { identifier, os.date('%Y-%m-%d') })
+    end)
+    local out = {}
+    for _, r in ipairs(ok and rows or {}) do out[r.action] = { count = r.count, amount = r.amount } end
+    return out
+end
 
 local function daily(identifier, action)
     local ok, d = pcall(function() return exports.rp_jobs:GetDaily(identifier, action) end)
@@ -18,11 +31,6 @@ local function addDaily(identifier, action, count, amount)
     pcall(function() exports.rp_jobs:AddDaily(identifier, action, count, amount) end)
 end
 
-local function inCombat(src)
-    local ok, res = pcall(function() return exports.combat_core:IsInCombat(src) end)
-    return ok and res == true
-end
-
 local function policeOnDuty()
     local n = 0
     for _, id in ipairs(ESX.GetPlayers()) do
@@ -30,17 +38,6 @@ local function policeOnDuty()
         if x and x.job and x.job.name == 'police' then n = n + 1 end
     end
     return n
-end
-
-local function pay(xPlayer, account, amount, reason)
-    if account == 'money' then
-        if xPlayer.getMoney() < amount then return false end
-        xPlayer.removeMoney(amount, reason)
-    else
-        if xPlayer.getAccount(account).money < amount then return false end
-        xPlayer.removeAccountMoney(account, amount, reason)
-    end
-    return true
 end
 
 ---------------------------------------------------------------------------
@@ -54,13 +51,13 @@ lib.callback.register('rp_gangs:market:info', function(source)
     if not Gang.near(source, BM.coords, BM.distance + 6.0) then return { ok = false, msg = 'gang.too_far' } end
 
     local items, weapons = {}, {}
+    local used = dailyAll(xPlayer.identifier)
+    local function usedCount(key) return used['bm:' .. key] and used['bm:' .. key].count or 0 end
     for _, i in ipairs(BM.items) do
-        items[#items + 1] = { key = i.item, label = i.label, price = i.price,
-            left = math.max(0, i.dailyLimit - daily(xPlayer.identifier, 'bm:' .. i.item).count) }
+        items[#items + 1] = { key = i.item, label = i.label, price = i.price, left = math.max(0, i.dailyLimit - usedCount(i.item)) }
     end
     for _, w in ipairs(BM.weapons) do
-        weapons[#weapons + 1] = { key = w.weapon, label = w.label, price = w.price,
-            left = math.max(0, w.dailyLimit - daily(xPlayer.identifier, 'bm:' .. w.weapon).count) }
+        weapons[#weapons + 1] = { key = w.weapon, label = w.label, price = w.price, left = math.max(0, w.dailyLimit - usedCount(w.weapon)) }
     end
     return { ok = true, items = items, weapons = weapons, account = BM.account,
              hasTerritory = Gang.hasTerritory(gang.id), needTerritory = BM.needTerritory }
@@ -191,6 +188,17 @@ lib.callback.register('rp_gangs:fence:sell', function(source, item, count)
     exports.server_logs:Log('money', 'Hehler verkoop', ('%s verkocht %dx %s voor €%d (%s)'):format(
         exports.server_logs:Describe(source), sellCount, item, total, Fence.account))
     return { ok = true, msg = 'gang.fence_sold', param = total }
+end)
+
+-- Geheugen: verlopen activiteit-cooldowns opruimen (elk uur)
+CreateThread(function()
+    while true do
+        Wait(3600 * 1000)
+        local now = os.time()
+        for key, untilT in pairs(activityCooldown) do
+            if untilT <= now then activityCooldown[key] = nil end
+        end
+    end
 end)
 
 AddEventHandler('playerDropped', function()

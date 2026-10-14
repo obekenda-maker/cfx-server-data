@@ -14,7 +14,6 @@ local cfg = ServerCfg.Hud
 local T = ServerCfg.T
 
 local nuiReady = false
-local loaded = false
 local last = {}               -- laatst verstuurde waarden (diff)
 local needs = { hunger = nil, thirst = nil }
 local boardOpen = false

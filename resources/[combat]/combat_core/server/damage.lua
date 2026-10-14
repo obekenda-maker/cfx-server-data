@@ -80,6 +80,9 @@ function Combat.evaluateDamage(sender, victim)
 end
 
 AddEventHandler('weaponDamageEvent', function(sender, data)
+    -- Snelle uitgang: dit event vuurt bij ELKE treffer op de server. Zonder deelnemers en met
+    -- PvP buiten zones toegestaan valt er niets te beoordelen.
+    if next(Combat.Players) == nil and CombatCfg.Outside.mode ~= 'disabled' then return end
     local ok, err = pcall(function()
         for _, victim in ipairs(victimsFromEvent(data)) do
             if victim ~= sender then

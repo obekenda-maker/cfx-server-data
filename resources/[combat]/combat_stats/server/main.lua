@@ -208,7 +208,8 @@ local function getLeaderboard(limit, sort)
 end
 exports('GetLeaderboard', getLeaderboard)
 
-lib.callback.register('combat_stats:getLeaderboard', function(_, sort, limit)
+lib.callback.register('combat_stats:getLeaderboard', function(source, sort, limit)
+    if not ServerCfg.Throttle(source, 'board', 500) then return {} end
     return getLeaderboard(limit or ServerCfg.Hud.leaderboardRows, sort)
 end)
 

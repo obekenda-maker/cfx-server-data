@@ -183,3 +183,86 @@ end
 function ServerCfg.HexToInt(hex)
     return tonumber((tostring(hex or '#ffffff'):gsub('#', '')), 16) or 16777215
 end
+
+---------------------------------------------------------------------------
+-- Gedeelde SERVER-helpers (één implementatie voor alle resources)
+---------------------------------------------------------------------------
+if IsDuplicityVersion() then
+    local last = {}   -- per resource-instantie
+
+    --- Rate-limit per speler+sleutel. true = toegestaan.
+    function ServerCfg.Throttle(src, key, ms)
+        local id = src .. ':' .. key
+        local now = GetGameTimer()
+        if (last[id] or -1e9) + ms > now then return false end
+        last[id] = now
+        return true
+    end
+
+    AddEventHandler('playerDropped', function()
+        local prefix = source .. ':'
+        for k in pairs(last) do
+            if k:sub(1, #prefix) == prefix then last[k] = nil end
+        end
+    end)
+
+    --- Server-side coördinaten van een speler (OneSync) als {x,y,z} of nil
+    function ServerCfg.CoordsOf(src)
+        local ped = GetPlayerPed(src)
+        if not ped or ped == 0 then return nil end
+        local c = GetEntityCoords(ped)
+        return { x = c.x, y = c.y, z = c.z }
+    end
+
+    function ServerCfg.Distance(a, b)
+        local dx, dy, dz = a.x - b.x, a.y - b.y, (a.z or 0) - (b.z or 0)
+        return math.sqrt(dx * dx + dy * dy + dz * dz)
+    end
+
+    --- Staat de speler binnen maxDist van punt (tabel/vector met x,y,z)?
+    function ServerCfg.PlayerNear(src, point, maxDist)
+        local c = ServerCfg.CoordsOf(src)
+        return c ~= nil and ServerCfg.Distance(c, point) <= maxDist
+    end
+
+    --- Afstand tussen twee spelers of nil
+    function ServerCfg.PlayerDistance(a, b)
+        local ca, cb = ServerCfg.CoordsOf(a), ServerCfg.CoordsOf(b)
+        if not ca or not cb then return nil end
+        return ServerCfg.Distance(ca, cb)
+    end
+
+    --- Doet de speler mee aan PvP (combat_core)? Bij twijfel/afwezige resource: false.
+    function ServerCfg.InCombat(src)
+        local ok, res = pcall(function() return exports.combat_core:IsInCombat(src) end)
+        return ok and res == true
+    end
+
+    --- Betaal `amount` van één account ('money' = contant). false bij te weinig saldo.
+    function ServerCfg.Pay(xPlayer, account, amount, reason)
+        if account == 'money' then
+            if xPlayer.getMoney() < amount then return false end
+            xPlayer.removeMoney(amount, reason)
+        else
+            local acc = xPlayer.getAccount(account)
+            if not acc or acc.money < amount then return false end
+            xPlayer.removeAccountMoney(account, amount, reason)
+        end
+        return true
+    end
+
+    --- Haal tot `amount` bij een speler: eerst contant, dan bank. Geeft het werkelijk afgeschreven bedrag.
+    function ServerCfg.Charge(xPlayer, amount, reason)
+        amount = math.floor(amount)
+        if amount <= 0 then return 0 end
+        local fromCash = math.min(xPlayer.getMoney(), amount)
+        if fromCash > 0 then xPlayer.removeMoney(fromCash, reason) end
+        local fromBank = 0
+        local rest = amount - fromCash
+        if rest > 0 then
+            fromBank = math.min(xPlayer.getAccount('bank').money, rest)
+            if fromBank > 0 then xPlayer.removeAccountMoney('bank', fromBank, reason) end
+        end
+        return fromCash + fromBank
+    end
+end

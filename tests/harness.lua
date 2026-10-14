@@ -467,3 +467,20 @@ function Test.case(name, fn)
         Test.failures[#Test.failures + 1] = ('%s: SCRIPTFOUT %s'):format(name, err)
     end
 end
+
+--- Laad ALLE eigen serverbestanden (zoals bij een echte serverstart) en laat de opstartthreads lopen
+function Mock.loadAll()
+    Mock.loadCore()
+    local function res(name, group, files)
+        for _, f in ipairs(files) do Mock.load(name, ('resources/%s/%s/%s.lua'):format(group, name, f)) end
+    end
+    res('combat_stats', '[combat]', { 'config', 'server/main' })
+    res('combat_core', '[combat]', { 'config', 'shared/util', 'server/zones', 'server/rules', 'server/rewards', 'server/damage', 'server/main' })
+    res('rp_jobs', '[roleplay]', { 'config', 'server/main', 'server/police', 'server/medic', 'server/mechanic', 'server/taxi', 'server/delivery' })
+    res('rp_garages', '[roleplay]', { 'config', 'server/main' })
+    res('rp_shops', '[roleplay]', { 'config', 'server/main' })
+    res('rp_interactions', '[roleplay]', { 'config', 'server/main' })
+    res('rp_gangs', '[roleplay]', { 'config', 'server/main', 'server/territory', 'server/market' })
+    res('admin_tools', '[admin]', { 'server/main' })
+    Mock.stepThreads()
+end

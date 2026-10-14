@@ -62,8 +62,7 @@ ESX, ox_lib en oxmysql worden **niet** in deze repo meegeleverd (upstream, regel
 
 ## 4b. Testresultaat
 
-`python3 tests/run_all.py`: syntax (59 bestanden), manifesten (11 resources), teksten (414 sleutels), SQL (2× import in MariaDB 10.11)
-en 425 Lua-checks over 6 testbestanden – allemaal geslaagd. Zie README → Tests voor wat wel/niet gedekt is.
+Zie `docs/TESTRESULTATEN.md` (gegenereerd door `tests/make_report.py`).
 
 ## 5. Beperkingen (eerlijk)
 

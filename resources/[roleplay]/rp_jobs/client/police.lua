@@ -2,7 +2,6 @@
 
 local T = ServerCfg.T
 local cuffed = false
-local escortedBy = nil
 
 ---------------------------------------------------------------------------
 -- Acties van de agent
@@ -88,7 +87,6 @@ end)
 
 RegisterNetEvent('rp_jobs:escort', function(copSrc)
     local ped = PlayerPedId()
-    escortedBy = copSrc
     if copSrc then
         local idx = GetPlayerFromServerId(copSrc)
         if idx ~= -1 then

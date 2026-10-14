@@ -4,10 +4,11 @@
 
 ```bash
 pip install lupa pymysql
-# MariaDB moet draaien op socket /run/mysqld/mysqld.sock (user root). Bijv. op Ubuntu: apt install mariadb-server
-python3 tests/run_all.py
+# MariaDB op socket /run/mysqld/mysqld.sock (user root): apt install mariadb-server ; luacheck: apt install lua-check
+python3 tests/run_all.py        # of: python3 tests/make_report.py  (schrijft ook docs/TESTRESULTATEN.md)
 ```
-Dit draait: Lua-syntaxis (5.4) + JS-syntaxis, manifest-controle, tekstsleutel-controle, SQL-import (2×) en alle Lua-tests.
+Dit draait: Lua/JS-syntaxis, luacheck, manifesten, kruisverwijzingen, tekstsleutels, geheimen-scan, SQL-import (2×),
+alle Lua-servertests, een herstart-simulatie en de NUI in Chromium (resultaten: `docs/TESTRESULTATEN.md`).
 De Lua-tests laden onze **echte serverbestanden** met een mock van FiveM-natives, ESX, ox_lib en oxmysql;
 queries lopen via een **echte MariaDB** (de mock faalt ook op `nil`-gaten in queryparameters, die in oxmysql stil
 kunnen misgaan). Wat dat bewijst: de logica (rechten, afstanden, caps, cooldowns, validatie, SQL).

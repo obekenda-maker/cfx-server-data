@@ -35,7 +35,6 @@ ensure chat
 ensure chat-theme-gtao
 ensure spawnmanager
 ensure sessionmanager
-ensure hardcap
 ensure rconlog
 
 # ---- Kern: database, UI-bibliotheek en framework ---------------------

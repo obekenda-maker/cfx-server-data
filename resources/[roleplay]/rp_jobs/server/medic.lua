@@ -138,6 +138,19 @@ lib.callback.register('rp_jobs:hospitalRespawn', function(source)
     return { ok = true, spawn = { x = best.coords.x, y = best.coords.y, z = best.coords.z, h = best.coords.w }, fee = fee, label = best.label }
 end)
 
+-- Geheugen: verlopen RDM-tellers opruimen (elk half uur)
+CreateThread(function()
+    while true do
+        Wait(30 * 60 * 1000)
+        local now = os.time()
+        for identifier, bucket in pairs(killsByKiller) do
+            local alive = false
+            for _, t in ipairs(bucket.times) do if now - t < 3600 then alive = true break end end
+            if not alive then killsByKiller[identifier] = nil end
+        end
+    end
+end)
+
 AddEventHandler('playerDropped', function()
     downAt[source], callAt[source], reviveAt[source] = nil, nil, nil
 end)

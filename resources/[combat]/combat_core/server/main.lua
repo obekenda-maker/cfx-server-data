@@ -2,16 +2,7 @@
     combat_core/server/main.lua – callbacks, events, exports, lifecycle.
 ]]
 
-local lastCall = {}
-
---- Eenvoudige rate-limit per speler+sleutel. true = toegestaan.
-local function throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = Combat.now()
-    if (lastCall[id] or 0) + ms > now then return false end
-    lastCall[id] = now
-    return true
-end
+local throttle = ServerCfg.Throttle
 
 local function reply(ok, reason, param, data)
     return { ok = ok, reason = reason, param = param, data = data }
@@ -21,6 +12,7 @@ end
 -- Callbacks (client → server)
 ---------------------------------------------------------------------------
 lib.callback.register('combat:getZones', function(source)
+    if not throttle(source, 'zones', 400) then return {} end
     local list = {}
     for _, id in ipairs(Combat.ZoneOrder) do
         local zone = Combat.Zones[id]
@@ -32,6 +24,7 @@ lib.callback.register('combat:getZones', function(source)
 end)
 
 lib.callback.register('combat:getCounts', function(source)
+    if not throttle(source, 'counts', 400) then return {} end
     local counts = {}
     for _, id in ipairs(Combat.ZoneOrder) do
         counts[id] = Combat.countPlayers(id)
@@ -79,6 +72,7 @@ RegisterNetEvent('combat:died', function(killerId, weaponHash)
 end)
 
 RegisterNetEvent('combat:protectionBroken', function()
+    if not throttle(source, 'prot', 500) then return end
     local p = Combat.Players[source]
     if p and p.protectedUntil > Combat.now() then
         p.protectedUntil = Combat.now()
@@ -92,9 +86,6 @@ AddEventHandler('playerDropped', function()
     local src = source
     Combat.leave(src, nil, true)
     Combat.Cooldowns[src] = nil
-    for key in pairs(lastCall) do
-        if key:find('^' .. src .. ':') then lastCall[key] = nil end
-    end
 end)
 
 -- Jobwissel tijdens PvP (bijv. politie gaat in dienst) → direct verlaten

@@ -1,31 +1,9 @@
 --[[ rp_interactions/server/main.lua ]]
 
-local last = {}
-local function throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
-end
-
-local function coordsOf(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local c = GetEntityCoords(ped)
-    return { x = c.x, y = c.y, z = c.z }
-end
-
-local function distance(a, b)
-    local ca, cb = coordsOf(a), coordsOf(b)
-    if not ca or not cb then return nil end
-    return math.sqrt((ca.x - cb.x) ^ 2 + (ca.y - cb.y) ^ 2 + (ca.z - cb.z) ^ 2)
-end
-
-local function inCombat(src)
-    local ok, res = pcall(function() return exports.combat_core:IsInCombat(src) end)
-    return ok and res == true
-end
+local throttle = ServerCfg.Throttle
+local coordsOf = ServerCfg.CoordsOf
+local distance = ServerCfg.PlayerDistance
+local inCombat = ServerCfg.InCombat
 
 --- Tekst opschonen: geen besturingstekens, beperkte lengte
 local function clean(text)
@@ -159,7 +137,3 @@ RegisterCommand('geefitem', function(source, args)
     ServerCfg.Notify(target, 'success', 'inter.got_item', count, have.label or item, xFrom.getName())
 end, false)
 
-AddEventHandler('playerDropped', function()
-    local prefix = source .. ':'
-    for k in pairs(last) do if k:sub(1, #prefix) == prefix then last[k] = nil end end
-end)

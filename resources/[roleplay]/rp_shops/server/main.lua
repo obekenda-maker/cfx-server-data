@@ -1,41 +1,15 @@
 --[[ rp_shops/server/main.lua – kopen (server-gevalideerd) en bruikbare items ]]
 
+local throttle = ServerCfg.Throttle
+local inCombat = ServerCfg.InCombat
+local pay = function(xPlayer, account, amount, reason)
+    if not ShopCfg.AllowedAccounts[account] then return false end
+    return ServerCfg.Pay(xPlayer, account, amount, reason)
+end
+local function nearShop(src, shop) return ServerCfg.PlayerNear(src, shop.coords, ShopCfg.ShopDistance) end
+
 local shopById = {}
 for _, s in ipairs(ShopCfg.Shops) do shopById[s.id] = s end
-
-local last = {}
-local function throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
-end
-
-local function nearShop(src, shop)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return false end
-    local c = GetEntityCoords(ped)
-    local dx, dy, dz = c.x - shop.coords.x, c.y - shop.coords.y, c.z - shop.coords.z
-    return math.sqrt(dx * dx + dy * dy + dz * dz) <= ShopCfg.ShopDistance
-end
-
-local function inCombat(src)
-    local ok, res = pcall(function() return exports.combat_core:IsInCombat(src) end)
-    return ok and res == true
-end
-
-local function pay(xPlayer, account, amount, reason)
-    if not ShopCfg.AllowedAccounts[account] then return false end
-    if account == 'money' then
-        if xPlayer.getMoney() < amount then return false end
-        xPlayer.removeMoney(amount, reason)
-    else
-        if xPlayer.getAccount(account).money < amount then return false end
-        xPlayer.removeAccountMoney(account, amount, reason)
-    end
-    return true
-end
 
 local function hasLicense(src, licenseType)
     local p = promise.new()
@@ -81,6 +55,7 @@ end)
 -- Ammu-Nation
 ---------------------------------------------------------------------------
 lib.callback.register('rp_shops:weaponInfo', function(source)
+    if not throttle(source, 'winfo', 500) then return {} end
     return { hasLicense = hasLicense(source, ShopCfg.WeaponShop.licenseType) }
 end)
 
@@ -147,7 +122,3 @@ for name, effect in pairs(ShopCfg.Consumables) do
     end)
 end
 
-AddEventHandler('playerDropped', function()
-    local prefix = source .. ':'
-    for k in pairs(last) do if k:sub(1, #prefix) == prefix then last[k] = nil end end
-end)

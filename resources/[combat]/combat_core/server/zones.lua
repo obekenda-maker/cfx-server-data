@@ -19,13 +19,7 @@ function Combat.debug(...)
     if CombatCfg.Debug then print('^3[combat_core]^7', ...) end
 end
 
---- Server-side coördinaten van een speler (OneSync).
-function Combat.coordsOf(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local c = GetEntityCoords(ped)
-    return { x = c.x, y = c.y, z = c.z }
-end
+Combat.coordsOf = ServerCfg.CoordsOf   -- server-side coördinaten (OneSync)
 
 ---------------------------------------------------------------------------
 -- Zone normaliseren

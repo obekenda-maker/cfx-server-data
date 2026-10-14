@@ -5,16 +5,7 @@
 ]]
 
 local A = ServerCfg.Admin
-local last = {}
-
-local function throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
-end
-
+local throttle = ServerCfg.Throttle
 ---------------------------------------------------------------------------
 -- Rechten
 ---------------------------------------------------------------------------
@@ -307,6 +298,7 @@ end)
 
 lib.callback.register('admin_tools:getPlayers', function(source)
     if not has(source, 'menu') then return nil end
+    if not throttle(source, 'players', 500) then return nil end
     local list = {}
     for _, id in ipairs(ESX.GetPlayers()) do
         id = tonumber(id)
@@ -391,7 +383,3 @@ AddEventHandler('playerConnecting', function(name, _, deferrals)
     deferrals.done()
 end)
 
-AddEventHandler('playerDropped', function()
-    local prefix = source .. ':'
-    for k in pairs(last) do if k:sub(1, #prefix) == prefix then last[k] = nil end end
-end)

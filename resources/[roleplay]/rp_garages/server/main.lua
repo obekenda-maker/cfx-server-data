@@ -6,6 +6,10 @@
 local function trim(s) return (tostring(s or ''):gsub('^%s+', ''):gsub('%s+$', '')) end
 local function u32(h) return (tonumber(h) or 0) & 0xFFFFFFFF end
 
+local throttle = ServerCfg.Throttle
+local near = ServerCfg.PlayerNear
+local pay = ServerCfg.Pay
+
 local garageById, catalog = {}, {}
 for _, g in ipairs(GarageCfg.Garages) do garageById[g.id] = g end
 for _, cat in ipairs(GarageCfg.Shop.categories) do
@@ -13,35 +17,16 @@ for _, cat in ipairs(GarageCfg.Shop.categories) do
 end
 
 local locks = {}   -- [plate] = tijdstip tot wanneer dit kenteken vergrendeld is (tegen dubbel uitparkeren)
-local last = {}
 
-local function throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
+--- Alle kentekens van voertuigen die nu in de wereld staan (één scan per aanroep)
+local function worldPlates()
+    local set = {}
+    for _, veh in ipairs(GetAllVehicles()) do set[trim(GetVehicleNumberPlateText(veh))] = veh end
+    return set
 end
 
-local function coordsOf(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local c = GetEntityCoords(ped)
-    return { x = c.x, y = c.y, z = c.z }
-end
-
-local function near(src, target, maxDist)
-    local c = coordsOf(src)
-    if not c then return false end
-    local dx, dy, dz = c.x - target.x, c.y - target.y, c.z - target.z
-    return math.sqrt(dx * dx + dy * dy + dz * dz) <= maxDist
-end
-
-local function plateInWorld(plate)
-    for _, veh in ipairs(GetAllVehicles()) do
-        if trim(GetVehicleNumberPlateText(veh)) == plate then return veh end
-    end
-    return nil
+local function plateInWorld(plate, set)
+    return (set or worldPlates())[plate]
 end
 
 local function ownedRow(identifier, plate)
@@ -50,21 +35,11 @@ local function ownedRow(identifier, plate)
         { identifier, plate })
 end
 
-local function pay(xPlayer, account, amount, reason)
-    if account == 'money' then
-        if xPlayer.getMoney() < amount then return false end
-        xPlayer.removeMoney(amount, reason)
-    else
-        if xPlayer.getAccount(account).money < amount then return false end
-        xPlayer.removeAccountMoney(account, amount, reason)
-    end
-    return true
-end
-
 ---------------------------------------------------------------------------
 -- Lijsten
 ---------------------------------------------------------------------------
 lib.callback.register('rp_garages:list', function(source, garageId)
+    if not throttle(source, 'list', 700) then return {} end
     local garage = garageById[garageId]
     local xPlayer = ESX.GetPlayerFromId(source)
     if not garage or not xPlayer then return {} end
@@ -84,15 +59,17 @@ lib.callback.register('rp_garages:list', function(source, garageId)
 end)
 
 lib.callback.register('rp_garages:impoundList', function(source)
+    if not throttle(source, 'ilist', 700) then return {} end
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer or not near(source, GarageCfg.Impound.coords, GarageCfg.RetrieveDistance + 10.0) then return {} end
     local rows = MySQL.query.await(
         'SELECT plate, vehicle FROM owned_vehicles WHERE owner = ? AND `type` = ? AND `stored` = 0 ORDER BY plate',
         { xPlayer.identifier, 'car' }) or {}
     local out = {}
+    local inWorld = worldPlates()
     for _, r in ipairs(rows) do
         local plate = trim(r.plate)
-        if not plateInWorld(plate) then
+        if not inWorld[plate] then
             local ok, props = pcall(json.decode, r.vehicle)
             if ok and type(props) == 'table' and props.model then
                 out[#out + 1] = { plate = plate, model = props.model }
@@ -239,7 +216,7 @@ lib.callback.register('rp_garages:buy', function(source, model)
     local plate
     for _ = 1, 20 do
         local candidate = randomPlate()
-        local exists = MySQL.scalar.await('SELECT 1 FROM owned_vehicles WHERE TRIM(plate) = ? LIMIT 1', { candidate })
+        local exists = MySQL.scalar.await('SELECT 1 FROM owned_vehicles WHERE plate = ? LIMIT 1', { candidate })
         if not exists then plate = candidate break end
     end
     if not plate then return { ok = false, msg = 'garage.plate_fail' } end
@@ -258,7 +235,14 @@ lib.callback.register('rp_garages:buy', function(source, model)
     return { ok = true, msg = 'garage.bought', param = entry.label, plate = plate, garage = GarageCfg.Shop.deliverTo }
 end)
 
-AddEventHandler('playerDropped', function()
-    local prefix = source .. ':'
-    for k in pairs(last) do if k:sub(1, #prefix) == prefix then last[k] = nil end end
+
+-- Geheugen: verlopen kenteken-locks opruimen (elke 10 minuten)
+CreateThread(function()
+    while true do
+        Wait(10 * 60 * 1000)
+        local now = GetGameTimer()
+        for plate, untilT in pairs(locks) do
+            if untilT <= now then locks[plate] = nil end
+        end
+    end
 end)

@@ -14,30 +14,11 @@ Gang = {
     ready   = false,
 }
 
-local last = {}
-function Gang.throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
-end
-
-function Gang.coordsOf(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local c = GetEntityCoords(ped)
-    return { x = c.x, y = c.y, z = c.z }
-end
-
-function Gang.dist(a, b)
-    return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
-end
-
-function Gang.near(src, target, maxDist)
-    local c = Gang.coordsOf(src)
-    return c ~= nil and Gang.dist(c, target) <= maxDist
-end
+Gang.throttle = ServerCfg.Throttle
+Gang.coordsOf = ServerCfg.CoordsOf
+Gang.dist = ServerCfg.Distance
+Gang.near = ServerCfg.PlayerNear
+local pay = ServerCfg.Pay
 
 function Gang.log(title, text, channel)
     exports.server_logs:Log(channel or 'gang', title, text)
@@ -117,17 +98,6 @@ local function gangCount()
     return n
 end
 
-local function pay(xPlayer, account, amount, reason)
-    if account == 'money' then
-        if xPlayer.getMoney() < amount then return false end
-        xPlayer.removeMoney(amount, reason)
-    else
-        if xPlayer.getAccount(account).money < amount then return false end
-        xPlayer.removeAccountMoney(account, amount, reason)
-    end
-    return true
-end
-
 ---------------------------------------------------------------------------
 -- Exports
 ---------------------------------------------------------------------------
@@ -151,6 +121,7 @@ end)
 -- Info
 ---------------------------------------------------------------------------
 lib.callback.register('rp_gangs:getInfo', function(source)
+    if not Gang.throttle(source, 'info', 500) then return nil end
     local gang, me = Gang.of(source)
     if not gang then
         return { inGang = false, cost = GangCfg.Creation.cost }
@@ -386,8 +357,6 @@ end)
 AddEventHandler('playerDropped', function()
     local src = source
     Gang.bySrc[src] = nil
-    local prefix = src .. ':'
-    for k in pairs(last) do if k:sub(1, #prefix) == prefix then last[k] = nil end end
 end)
 
 CreateThread(function()

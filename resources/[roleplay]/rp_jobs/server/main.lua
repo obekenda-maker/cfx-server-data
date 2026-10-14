@@ -8,66 +8,17 @@
 ]]
 
 Jobs = {}
+Jobs.coordsOf = ServerCfg.CoordsOf
+Jobs.dist = ServerCfg.Distance
+Jobs.playerDistance = ServerCfg.PlayerDistance
+Jobs.throttle = ServerCfg.Throttle
+Jobs.charge = ServerCfg.Charge
 
 local function today() return os.date('%Y-%m-%d') end
-
-function Jobs.coordsOf(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local c = GetEntityCoords(ped)
-    return { x = c.x, y = c.y, z = c.z }
-end
-
-function Jobs.dist(a, b)
-    local dx, dy, dz = a.x - b.x, a.y - b.y, a.z - b.z
-    return math.sqrt(dx * dx + dy * dy + dz * dz)
-end
-
---- Afstand tussen twee spelers (server-coördinaten) of nil
-function Jobs.playerDistance(a, b)
-    local ca, cb = Jobs.coordsOf(a), Jobs.coordsOf(b)
-    if not ca or not cb then return nil end
-    return Jobs.dist(ca, cb)
-end
 
 function Jobs.jobName(xPlayer)
     local job = xPlayer.job or (xPlayer.getJob and xPlayer.getJob())
     return job and job.name or 'unemployed'
-end
-
---- Rate-limit per speler+sleutel (ms)
-local last = {}
-function Jobs.throttle(src, key, ms)
-    local id = src .. ':' .. key
-    local now = GetGameTimer()
-    if (last[id] or -1e9) + ms > now then return false end
-    last[id] = now
-    return true
-end
-
-AddEventHandler('playerDropped', function()
-    local prefix = source .. ':'
-    for k in pairs(last) do
-        if k:sub(1, #prefix) == prefix then last[k] = nil end
-    end
-end)
-
---- Geld overmaken / pakken helpers -----------------------------------------
---- Haalt `amount` bij een speler: eerst contant, dan bank. Geeft werkelijk afgeschreven bedrag.
-function Jobs.charge(xPlayer, amount, reason)
-    amount = math.floor(amount)
-    if amount <= 0 then return 0 end
-    local cash = xPlayer.getMoney()
-    local fromCash = math.min(cash, amount)
-    if fromCash > 0 then xPlayer.removeMoney(fromCash, reason) end
-    local rest = amount - fromCash
-    local fromBank = 0
-    if rest > 0 then
-        local bank = xPlayer.getAccount('bank').money
-        fromBank = math.min(bank, rest)
-        if fromBank > 0 then xPlayer.removeAccountMoney('bank', fromBank, reason) end
-    end
-    return fromCash + fromBank
 end
 
 --- Stort in een society-rekening (esx_addonaccount). Geeft true bij succes.

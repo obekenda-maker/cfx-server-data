@@ -23,19 +23,22 @@ end
 
 local function respawnAt(data)
     local spawn = data.spawn
-    local z = C.groundZ(spawn.x, spawn.y, spawn.z)
     DoScreenFadeOut(250)
     Wait(300)
-    NetworkResurrectLocalPlayer(spawn.x, spawn.y, z, spawn.h or 0.0, true, false)
-    local ped = PlayerPedId()
-    ClearPedTasksImmediately(ped)
-    ClearPedBloodDamage(ped)
-    C.applyLoadout(data.loadout)
-    C.applyRules()
-    TriggerEvent('esx:onPlayerSpawn')            -- zodat andere ESX-resources weten dat de speler leeft
-    SetTimeout(600, function() C.restoreNeeds() end) -- honger/dorst blijven op RP-niveau
+    local ok, err = pcall(function()
+        local z = C.groundZ(spawn.x, spawn.y, spawn.z)
+        NetworkResurrectLocalPlayer(spawn.x, spawn.y, z, spawn.h or 0.0, true, false)
+        local ped = PlayerPedId()
+        ClearPedTasksImmediately(ped)
+        ClearPedBloodDamage(ped)
+        C.applyLoadout(data.loadout)
+        C.applyRules()
+        TriggerEvent('esx:onPlayerSpawn')            -- zodat andere ESX-resources weten dat de speler leeft
+        SetTimeout(600, function() C.restoreNeeds() end) -- honger/dorst blijven op RP-niveau
+    end)
     Wait(200)
     DoScreenFadeIn(300)
+    if not ok then print('^1[combat_core]^7 Fout bij respawn: ' .. tostring(err)) end
     C.state = data.state or C.state
     TriggerEvent('server_hud:combat', C.state)
     C.startProtection(data.protection)
@@ -50,6 +53,13 @@ local function runDeath(ped)
     local startedAt = GetGameTimer()
     local minWait = CombatCfg.Rules.respawnSeconds * 1000
     while C.joined and IsEntityDead(PlayerPedId()) do
+        -- Noodrem: wie na 90 s nog dood is (desync met de server) wordt uit de PvP gehaald
+        if GetGameTimer() - startedAt > 90000 then
+            lib.hideTextUI()
+            local res = lib.callback.await('combat:leave', false)
+            if not res or not res.ok then C.localCleanup() end
+            break
+        end
         local remaining = math.ceil((minWait - (GetGameTimer() - startedAt)) / 1000)
         if remaining > 0 then
             lib.showTextUI(T('combat.death_timer', remaining))
@@ -69,6 +79,8 @@ local function runDeath(ped)
                 C.notify('warning', 'combat.respawn_limit')
                 Wait(5000)
             elseif res and res.reason == 'combat.not_joined' then
+                -- de server kent ons niet meer als deelnemer: lokaal opruimen zodat we niet blijven hangen
+                C.localCleanup()
                 break
             else
                 Wait(1000)
