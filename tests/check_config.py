@@ -19,7 +19,8 @@ if any(l.startswith("setr") and re.search(r"(?i)mysql|webhook|key|pass", l) for 
 
 ensures = [l.split()[1] for l in active if l.startswith("ensure ")]
 FORBIDDEN = {"runcode", "esx_ambulancejob", "esx_policejob", "esx_mechanicjob", "esx_vehicleshop", "esx_shops", "esx_weaponshop",
-             "esx_advancedgarage", "ox_inventory", "hardcap", "money-fountain", "money", "ped-money-drops", "basic-gamemode"}
+             "esx_advancedgarage", "ox_inventory", "hardcap", "money-fountain", "money", "ped-money-drops", "basic-gamemode",
+             "mapmanager", "essentialmode", "es_admin2", "fivem-map-skater", "fivem-map-hipster", "qb-core", "default_spawnpoint"}  # laatste rij = ESX "DoNotUse"-lijst
 for f in FORBIDDEN & set(ensures): err(f"'{f}' mag niet in server.cfg.example (conflict/onveilig)")
 EXTERNAL = {"cron", "oxmysql", "ox_lib", "es_extended", "esx_menu_default", "esx_menu_dialog", "esx_menu_list", "skinchanger", "esx_skin",
             "esx_identity", "esx_addonaccount", "esx_addoninventory", "esx_datastore", "esx_society", "esx_status", "esx_basicneeds", "esx_license"}

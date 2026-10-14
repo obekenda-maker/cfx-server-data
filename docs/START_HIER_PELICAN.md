@@ -39,3 +39,11 @@ maak een personage, en loop daarna `docs/MULTIPLAYER_CHECKLIST.md` door (minimaa
 
 Veelvoorkomende fouten: "Couldn't find resource X" = map ontbreekt/verkeerde plek · `oxmysql` fout bij start = connection string ·
 "Table ... doesn't exist" = `ALL_IN_ONE.sql` niet (volledig) geïmporteerd.
+
+## Bekende meldingen bij de eerste start
+* `WE STOPPED A RESOURCE THAT WILL BREAK ESX ... mapmanager` → verwijder de regel `ensure mapmanager` uit `server.cfg` (ESX verbiedt die resource).
+* `Unable to establish a connection to the database (ECONNREFUSED)` → host/poort in `mysql_connection_string` kloppen niet met het tabblad *Databases* van je paneel
+  (gebruik daar het getoonde adres en de poort, niet een geraden adres). oxmysql toont bij deze fout de volledige connection string, **wachtwoord inbegrepen**: plak dat nooit ergens.
+* `chat ... Running build tasks ... Couldn't start resource chat` → de chat-resource bouwt zichzelf (yarn/webpack) en herstart daarna; wacht tot `Started resource chat` verschijnt.
+* `sv_stateBagStrictMode is currently DISABLED` (ox_lib) → bewust uit: de medic-revive in `rp_jobs` leest een client-state. Aanpassen vóór je het aanzet.
+* `An update is available for ox_lib/oxmysql` → negeren; de versies zijn bewust vastgezet op wat getest is.
