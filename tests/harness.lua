@@ -15,7 +15,6 @@ Mock = {
     timeouts = {},
     threads = {},
     logs = {},                -- server_logs:Log aanroepen
-    db = { combat_stats = {}, combat_kill_log = {}, admin_bans = {}, admin_warnings = {} },
     convars = {},
     commands = {},
     http = {},
@@ -68,13 +67,99 @@ Citizen = { CreateThread = CreateThread, Wait = Wait }
 function SetTimeout(ms, fn) Mock.timeouts[#Mock.timeouts + 1] = { at = Mock.time + ms, fn = fn } end
 function GetConvar(name, default) return Mock.convars[name] or default end
 
-json = {
-    encode = function(v) return '<json>' end,
-    decode = function() return {} end,
-}
+local function jsonEncode(v)
+    local t = type(v)
+    if v == nil then return 'null' end
+    if t == 'boolean' then return tostring(v) end
+    if t == 'number' then
+        if math.type(v) == 'integer' then return tostring(v) end
+        return string.format('%.14g', v)
+    end
+    if t == 'string' then
+        return '"' .. v:gsub('[%c"\\]', function(c)
+            local map = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+            return map[c] or string.format('\\u%04x', c:byte())
+        end) .. '"'
+    end
+    if t == 'table' then
+        local n, count = #v, 0
+        for _ in pairs(v) do count = count + 1 end
+        if n == count and n > 0 then
+            local out = {}
+            for i = 1, n do out[i] = jsonEncode(v[i]) end
+            return '[' .. table.concat(out, ',') .. ']'
+        end
+        local keys = {}
+        for k in pairs(v) do keys[#keys + 1] = tostring(k) end
+        table.sort(keys)
+        local out = {}
+        for _, k in ipairs(keys) do
+            local val = v[k]; if val == nil then val = v[tonumber(k)] end
+            out[#out + 1] = jsonEncode(k) .. ':' .. jsonEncode(val)
+        end
+        return '{' .. table.concat(out, ',') .. '}'
+    end
+    error('json: niet ondersteund type ' .. t)
+end
+
+local function jsonDecode(str)
+    local pos = 1
+    local function ws() pos = str:find('%S', pos) or #str + 1 end
+    local value
+    local function string_()
+        local out, i = {}, pos + 1
+        while true do
+            local c = str:sub(i, i)
+            if c == '"' then pos = i + 1 return table.concat(out) end
+            if c == '\\' then
+                local n = str:sub(i + 1, i + 1)
+                local map = { n = '\n', t = '\t', r = '\r', ['"'] = '"', ['\\'] = '\\', ['/'] = '/' }
+                if n == 'u' then out[#out + 1] = utf8.char(tonumber(str:sub(i + 2, i + 5), 16)); i = i + 6
+                else out[#out + 1] = map[n] or n; i = i + 2 end
+            else out[#out + 1] = c; i = i + 1 end
+        end
+    end
+    function value()
+        ws()
+        local c = str:sub(pos, pos)
+        if c == '{' then
+            local obj = {}; pos = pos + 1; ws()
+            if str:sub(pos, pos) == '}' then pos = pos + 1 return obj end
+            while true do
+                ws(); local k = string_(); ws(); assert(str:sub(pos, pos) == ':', 'json: ":" verwacht'); pos = pos + 1
+                obj[k] = value(); ws()
+                local d = str:sub(pos, pos); pos = pos + 1
+                if d == '}' then return obj end
+                assert(d == ',', 'json: "," verwacht')
+            end
+        elseif c == '[' then
+            local arr = {}; pos = pos + 1; ws()
+            if str:sub(pos, pos) == ']' then pos = pos + 1 return arr end
+            while true do
+                arr[#arr + 1] = value(); ws()
+                local d = str:sub(pos, pos); pos = pos + 1
+                if d == ']' then return arr end
+                assert(d == ',', 'json: "," verwacht')
+            end
+        elseif c == '"' then return string_()
+        elseif str:sub(pos, pos + 3) == 'true' then pos = pos + 4 return true
+        elseif str:sub(pos, pos + 4) == 'false' then pos = pos + 5 return false
+        elseif str:sub(pos, pos + 3) == 'null' then pos = pos + 4 return nil
+        else
+            local num = str:match('^-?%d+%.?%d*[eE]?[+-]?%d*', pos)
+            assert(num and #num > 0, 'json: ongeldig op positie ' .. pos)
+            pos = pos + #num
+            return math.tointeger(tonumber(num)) or tonumber(num)
+        end
+    end
+    local result = value()
+    return result
+end
+
+json = { encode = jsonEncode, decode = function(str) local ok, r = pcall(jsonDecode, str) if not ok then error(r) end return r end }
 
 function PerformHttpRequest(url, cb, method, body, headers)
-    Mock.http[#Mock.http + 1] = { url = url, body = body }
+    Mock.http[#Mock.http + 1] = { url = url, body = body, cb = cb }
 end
 
 ---------------------------------------------------------------------------
@@ -157,9 +242,15 @@ end
 ---------------------------------------------------------------------------
 -- ox_lib
 ---------------------------------------------------------------------------
+Mock.clientCallbacks = {}   -- [name] = function(target, ...) → resultaat (simuleert client-reactie)
 lib = {
     callback = {
         register = function(name, fn) Mock.callbacks[name] = fn end,
+        await = function(name, target, ...)
+            local fn = Mock.clientCallbacks[name]
+            assert(fn, 'geen client-callback gemockt: ' .. name)
+            return fn(target, ...)
+        end,
     },
 }
 function Mock.callback(name, src, ...)
@@ -176,17 +267,41 @@ function GetPlayerPed(src)
 end
 local function playerOfPed(ped) return Mock.players[ped - 1000] end
 
-function GetEntityCoords(ped) return playerOfPed(ped).coords end
+function GetEntityCoords(ped)
+    if ped >= 1000 and ped < 2000 then return playerOfPed(ped).coords end
+    return Mock.vehicles[ped].coords
+end
 function GetEntityHealth(ped) return playerOfPed(ped).health or 200 end
 function GetVehiclePedIsIn(ped) return playerOfPed(ped).vehicle or 0 end
+function GetPlayerFromServerId(id) return id end
 function GetSelectedPedWeapon(ped) return playerOfPed(ped).selectedWeapon or joaat('WEAPON_UNARMED') end
 function RemoveWeaponFromPed(ped, hash) playerOfPed(ped).removedWeapon = hash end
 function GetPlayerName(src) return Mock.players[src] and Mock.players[src].name or nil end
 function GetPlayerIdentifiers(src) return Mock.players[src] and Mock.players[src].identifiers or {} end
-function DoesEntityExist() return true end
+function DoesEntityExist(e) if e >= 1000 and e < 2000 then return Mock.players[e - 1000] ~= nil end return Mock.vehicles[e] ~= nil end
 function GetEntityType() return 1 end
-function NetworkGetEntityFromNetworkId(id) return id end
+function NetworkGetEntityFromNetworkId(id) return Mock.vehNet[id] or id end
 function NetworkGetEntityOwner(e) return e - 1000 end
+
+Mock.vehicles = {}   -- [entityId] = { model=, plate=, coords=, netId= }
+Mock.vehNet = {}
+function Mock.addVehicle(entity, model, plate, coords)
+    Mock.vehicles[entity] = { model = joaat(model), plate = plate, coords = coords or { x = 0.0, y = 0.0, z = 0.0 }, netId = entity + 5000 }
+    Mock.vehNet[entity + 5000] = entity
+    return entity + 5000
+end
+function GetAllVehicles() local l = {} for e in pairs(Mock.vehicles) do l[#l + 1] = e end return l end
+function GetVehicleNumberPlateText(e) return Mock.vehicles[e] and Mock.vehicles[e].plate or '' end
+function GetEntityModel(e) return Mock.vehicles[e] and Mock.vehicles[e].model or 0 end
+function DeleteEntity(e) Mock.vehicles[e] = nil Mock.deleted = e end
+function SetEntityCoords(ped, x, y, z) Mock.players[ped - 1000].coords = { x = x, y = y, z = z } end
+function DropPlayer(src, reason) Mock.dropped = { src = src, reason = reason } end
+function GetPlayerPing() return 42 end
+function NetworkGetNetworkIdFromEntity(e) return e + 5000 end
+function Mock.setVehicleOf(src, entity) Mock.players[src].vehicle = entity end
+
+Citizen.Await = function(p) return p.value end
+promise = { new = function() local p = { resolve = function(self, v) self.value = v end } return p end }
 
 function Player(src)
     local p = Mock.players[src]
@@ -199,7 +314,14 @@ end
 ---------------------------------------------------------------------------
 -- ESX
 ---------------------------------------------------------------------------
+Mock.jobs = {}
+for _, n in ipairs({ 'unemployed', 'police', 'offpolice', 'ambulance', 'offambulance', 'mechanic', 'offmechanic', 'taxi', 'trucker', 'courier' }) do
+    Mock.jobs[n] = { name = n, grades = { ['0'] = {}, ['1'] = {}, ['2'] = {}, ['3'] = {}, ['4'] = {} } }
+end
+Mock.usable = {}
 ESX = {
+    GetJobs = function() return Mock.jobs end,
+    RegisterUsableItem = function(name, fn) Mock.usable[name] = fn end,
     GetPlayerFromId = function(src) return Mock.xPlayers[src] end,
     GetPlayers = function()
         local list = {}
@@ -220,7 +342,7 @@ function Mock.addPlayer(src, opts)
     }
     local xp = {
         source = src, identifier = opts.identifier or ('license:lic' .. src),
-        job = { name = opts.job or 'unemployed', grade = opts.grade or 0 },
+        job = { name = opts.job or 'unemployed', grade = opts.grade or 0, grade_name = opts.grade_name or 'agent' },
         money = opts.money or 1000,
         accounts = { bank = opts.bank or 5000, black_money = 0 },
         loadout = opts.loadout or {},
@@ -236,16 +358,18 @@ function Mock.addPlayer(src, opts)
     function xp.addAccountMoney(name, n) xp.accounts[name] = (xp.accounts[name] or 0) + n end
     function xp.removeAccountMoney(name, n) xp.accounts[name] = (xp.accounts[name] or 0) - n end
     function xp.getJob() return xp.job end
-    function xp.setJob(name, grade) local last = xp.job; xp.job = { name = name, grade = grade or 0 }; TriggerEvent('esx:setJob', src, xp.job, last) end
+    function xp.setJob(name, grade) local last = xp.job; xp.job = { name = name, grade = grade or 0, grade_name = last.grade_name }; TriggerEvent('esx:setJob', src, xp.job, last) end
     function xp.getGroup() return xp.group end
     function xp.getLoadout() local c = {}; for i, w in ipairs(xp.loadout) do c[i] = { name = w.name, ammo = w.ammo, components = w.components or {}, tintIndex = w.tintIndex or 0 } end return c end
     function xp.updateWeaponAmmo(name, ammo) for _, w in ipairs(xp.loadout) do if w.name == name then w.ammo = ammo end end end
     function xp.hasWeapon(name) for _, w in ipairs(xp.loadout) do if w.name == name then return true end end return false end
     function xp.showNotification(msg) xp.notified[#xp.notified + 1] = msg end
-    function xp.getInventoryItem(name) return { name = name, count = xp.inventory[name] or 0 } end
+    function xp.getInventoryItem(name) return { name = name, label = name, count = xp.inventory[name] or 0 } end
     function xp.addInventoryItem(name, n) xp.inventory[name] = (xp.inventory[name] or 0) + n end
     function xp.removeInventoryItem(name, n) xp.inventory[name] = (xp.inventory[name] or 0) - n end
-    function xp.canCarryItem() return true end
+    function xp.canCarryItem() return not xp.noCarry end
+    function xp.getInventory() local l = {} for n, c in pairs(xp.inventory) do l[#l + 1] = { name = n, label = n, count = c } end return l end
+    function xp.addWeapon(name, ammo) table.insert(xp.loadout, { name = name, ammo = ammo }) end
     function xp.set() end
     function xp.get() return nil end
     Mock.xPlayers[src] = xp
@@ -272,68 +396,40 @@ function Mock.runTimeouts()
 end
 
 ---------------------------------------------------------------------------
--- oxmysql (in-memory, alleen de queries die onze resources gebruiken)
+-- oxmysql → ECHTE MariaDB via Python-brug (__db wordt door run_tests.py geleverd)
+-- Controleert ook dat parameterlijsten geen nil-gaten bevatten (breekt msgpack naar oxmysql).
 ---------------------------------------------------------------------------
-local function row_copy(r) if not r then return nil end local c = {} for k, v in pairs(r) do c[k] = v end return c end
-
-local MySQLimpl = {}
-function MySQLimpl.single(q, p)
-    if q:find('FROM combat_stats WHERE identifier') then return row_copy(Mock.db.combat_stats[p[1]]) end
-    return nil
-end
-function MySQLimpl.scalar(q, p)
-    if q:find('SELECT 1 FROM') then return 1 end
-    return nil
-end
-function MySQLimpl.insert(q, p)
-    if q:find('INSERT INTO combat_stats') then
-        Mock.db.combat_stats[p[1]] = { identifier = p[1], name = p[2], kills = 0, deaths = 0, best_streak = 0, xp = 0, earned_today = 0, earned_date = p[3] }
-        return 1
-    elseif q:find('INSERT INTO combat_kill_log') then
-        table.insert(Mock.db.combat_kill_log, { killer = p[1], victim = p[2], zone = p[3], weapon = p[4], money = p[5], xp = p[6] })
-        return #Mock.db.combat_kill_log
-    elseif q:find('INSERT INTO admin_bans') then
-        table.insert(Mock.db.admin_bans, { id = #Mock.db.admin_bans + 1, params = p, active = 1 })
-        return #Mock.db.admin_bans
-    elseif q:find('INSERT INTO admin_warnings') then
-        table.insert(Mock.db.admin_warnings, { license = p[1], name = p[2], reason = p[3], warned_by = p[4] })
-        return #Mock.db.admin_warnings
-    end
-    return 1
-end
-function MySQLimpl.update(q, p)
-    if q:find('UPDATE combat_stats SET') then
-        local r = Mock.db.combat_stats[p[8]]
-        if r then
-            r.name, r.kills, r.deaths, r.best_streak, r.xp, r.earned_today, r.earned_date = p[1], p[2], p[3], p[4], p[5], p[6], p[7]
-        end
-        return 1
-    end
-    return 0
-end
-function MySQLimpl.query(q, p)
-    if q:find('FROM combat_stats') then
-        local rows = {}
-        for _, r in pairs(Mock.db.combat_stats) do rows[#rows + 1] = row_copy(r) end
-        table.sort(rows, function(a, b) return a.kills > b.kills end)
-        return rows
-    end
-    return {}
+local function checkParams(q, p)
+    if p == nil then return {} end
+    assert(type(p) == 'table', 'parameters moeten een tabel zijn: ' .. q)
+    local n, count = #p, 0
+    for _ in pairs(p) do count = count + 1 end
+    assert(n == count, 'parameterlijst met nil-gat: ' .. q)
+    return p
 end
 
-local function wrap(fn)
-    return setmetatable({ await = function(q, p) return fn(q, p) end }, {
+local function dbcall(mode, q, p)
+    p = checkParams(q, p)
+    return __db(mode, q, p, #p)
+end
+
+local function wrap(mode)
+    return setmetatable({ await = function(q, p) return dbcall(mode, q, p) end }, {
         __call = function(_, q, p, cb)
-            local r = fn(q, p)
+            local r = dbcall(mode, q, p)
             if cb then cb(r) end
             return r
         end,
     })
 end
-MySQL = {
-    single = wrap(MySQLimpl.single), scalar = wrap(MySQLimpl.scalar), insert = wrap(MySQLimpl.insert),
-    update = wrap(MySQLimpl.update), query = wrap(MySQLimpl.query),
-}
+MySQL = { single = wrap('single'), scalar = wrap('scalar'), insert = wrap('insert'), update = wrap('update'), query = wrap('query') }
+
+--- Direct SQL voor tests (rijen als lijst van tabellen)
+DB = {}
+function DB.query(q, p) return dbcall('query', q, p or {}) end
+function DB.one(q, p) return dbcall('single', q, p or {}) end
+function DB.scalar(q, p) return dbcall('scalar', q, p or {}) end
+function DB.exec(q, p) return dbcall('update', q, p or {}) end
 
 ---------------------------------------------------------------------------
 -- Bestanden laden

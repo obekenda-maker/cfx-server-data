@@ -214,6 +214,7 @@ function Combat.processKill(killerSrc, victimSrc, zone, weaponHash)
     TriggerEvent('combat:kill', {
         zone = zone.id, killer = killerSrc, victim = victimSrc,
         killerTeam = k.team, victimTeam = v.team, credited = eligible,
+        victimAliveMs = now - v.spawnedAt,
     })
 
     if zone.mode == 'team' and (scores[k.team] or 0) >= zone.scoreLimit then

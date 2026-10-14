@@ -17,7 +17,8 @@ local function reset()
     local srcs = {}
     for src in pairs(Mock.xPlayers) do srcs[#srcs + 1] = src end
     for _, src in ipairs(srcs) do Mock.removePlayer(src) end
-    for k in pairs(Mock.db.combat_stats) do Mock.db.combat_stats[k] = nil end
+    DB.exec('DELETE FROM combat_stats')
+    DB.exec('DELETE FROM combat_kill_log')
     for k in pairs(Combat.Players) do Combat.Players[k] = nil end
     Combat.Cooldowns = {}
     for id in pairs(Combat.Scores) do Combat.Scores[id] = {} end
@@ -111,7 +112,7 @@ Test.case('kill: beloning, stats, killfeed, serie', function()
     Test.ok(feed, 'killfeed event')
     Test.eq(feed.args[1].weapon, 'Karabijn', 'NL wapenlabel')
     Test.eq(feed.args[1].killer, 'Speler1', 'killfeed killer')
-    Test.eq(#Mock.db.combat_kill_log, 1, 'kill gelogd in DB')
+    Test.eq(DB.scalar('SELECT COUNT(*) FROM combat_kill_log'), 1, 'kill gelogd in DB')
 end)
 
 Test.case('anti-farm: zelfde paar binnen cooldown = geen beloning/stat; daarna wel', function()
@@ -394,7 +395,7 @@ Test.case('stats: flush naar DB + leaderboard + level', function()
     Test.eq(exports.combat_stats:Get(1).best_streak, 4, 'beste serie')
     local board = exports.combat_stats:GetLeaderboard(5, 'kills')
     Test.eq(board[1].name, 'Alfa', 'leaderboard #1')
-    Test.eq(Mock.db.combat_stats['license:lic1'].kills, 2, 'gespoeld naar DB voor leaderboard')
+    Test.eq(DB.scalar('SELECT kills FROM combat_stats WHERE identifier = ?', { 'license:lic1' }), 2, 'gespoeld naar DB voor leaderboard')
     Test.eq(exports.combat_stats:Get(2).kd, 0.0, 'kd zonder kills')
 end)
 

@@ -16,4 +16,5 @@ shared_scripts {
 files {
     'config.lua',
     'locale_nl.lua',
+    'interact.lua',
 }
